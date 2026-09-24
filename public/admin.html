@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Petitfour · Painel</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0a3c5f">
+<link rel="icon" href="./Petitfour_files/logo-petitfour.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pf-azul-100:#dce8ef; --pf-azul-500:#1b5a85; --pf-azul-700:#0a3c5f; --pf-azul-900:#06283f;
+  --pf-branco:#fcfffd; --pf-creme:#fbf6ef; --pf-cinza-texto:#4a5a63;
+  --pf-rosa-200:#f3dee1; --pf-rosa-400:#e1adb1; --pf-rosa-600:#c98890;
+  --pf-verde:#1f6b45; --pf-verde-fundo:#dff3e6; --pf-erro:#9a3b2f; --pf-erro-fundo:#fbe9e5;
+  --fonte-titulo:'Outfit',system-ui,sans-serif; --fonte-texto:'DM Sans',system-ui,sans-serif;
+  --raio:12px;
+}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;font-family:var(--fonte-texto);font-size:14px;color:var(--pf-azul-700);background:var(--pf-creme);-webkit-font-smoothing:antialiased}
+h1,h2,h3{margin:0;font-family:var(--fonte-titulo);font-weight:600;letter-spacing:-.01em}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+input,select,textarea{font:inherit;font-size:16px;color:inherit}
+[hidden]{display:none!important}
+
+.topo{position:sticky;top:0;z-index:20;background:var(--pf-azul-700);color:var(--pf-branco)}
+.topo__linha{display:flex;align-items:center;gap:12px;max-width:1100px;margin:0 auto;padding:10px 16px}
+.topo img{width:36px;height:36px;border-radius:50%}
+.topo h1{font-size:17px}
+.topo__sair{margin-left:auto;font-size:13px;opacity:.8}
+.abas{display:flex;gap:4px;max-width:1100px;margin:0 auto;padding:0 12px 8px;overflow-x:auto;scrollbar-width:none}
+.abas::-webkit-scrollbar{display:none}
+.aba{flex:none;padding:8px 14px;border-radius:999px;font-weight:600;font-size:14px;color:rgba(252,255,253,.75)}
+.aba[aria-current="true"]{background:var(--pf-rosa-400);color:var(--pf-azul-700)}
+.aba .qtd{display:inline-block;min-width:20px;margin-left:4px;padding:0 6px;border-radius:999px;background:var(--pf-branco);color:var(--pf-azul-700);font-size:12px}
+
+main{max-width:1100px;margin:0 auto;padding:18px 16px 60px}
+.cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:6px 0 14px}
+.cab h2{font-size:21px;margin-right:auto}
+.filtros{display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:12px;scrollbar-width:none}
+.filtro{flex:none;padding:7px 12px;border-radius:999px;background:var(--pf-azul-100);font-weight:600;font-size:13px}
+.filtro[aria-pressed="true"]{background:var(--pf-azul-700);color:var(--pf-branco)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:8px 16px;border-radius:999px;font-weight:700;font-size:14px;background:var(--pf-azul-700);color:var(--pf-branco)}
+.btn--rosa{background:var(--pf-rosa-400);color:var(--pf-azul-700)}
+.btn--leve{background:var(--pf-azul-100);color:var(--pf-azul-700)}
+.btn--perigo{background:var(--pf-erro-fundo);color:var(--pf-erro)}
+.btn--peq{min-height:34px;padding:5px 12px;font-size:13px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+.grade{display:grid;gap:12px}
+@media (min-width:760px){.grade--2{grid-template-columns:1fr 1fr}.grade--4{grid-template-columns:repeat(4,1fr)}}
+.painel{background:var(--pf-branco);border:1px solid var(--pf-azul-100);border-radius:var(--raio);padding:14px 16px}
+.numero{font-family:var(--fonte-titulo);font-size:28px;font-weight:600}
+.rotulo{font-size:12px;font-weight:600;color:var(--pf-cinza-texto);text-transform:uppercase;letter-spacing:.08em}
+.muted{color:var(--pf-cinza-texto)}
+
+.pedido{display:grid;gap:8px}
+.pedido__topo{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pedido__topo h3{font-size:17px}
+.tag{display:inline-block;padding:3px 9px;border-radius:999px;font-size:12px;font-weight:700;background:var(--pf-azul-100)}
+.tag--rosa{background:var(--pf-rosa-200)}
+.tag--verde{background:var(--pf-verde-fundo);color:var(--pf-verde)}
+.tag--erro{background:var(--pf-erro-fundo);color:var(--pf-erro)}
+.pedido__itens{margin:0;padding-left:18px}
+.pedido__acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+details summary{cursor:pointer;font-size:13px;color:var(--pf-cinza-texto)}
+
+.tabela{width:100%;border-collapse:collapse;background:var(--pf-branco);border:1px solid var(--pf-azul-100);border-radius:var(--raio);overflow:hidden}
+.tabela th,.tabela td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--pf-azul-100);vertical-align:middle}
+.tabela th{font-size:12px;color:var(--pf-cinza-texto);font-weight:600}
+.tabela tr.inativo td{opacity:.55}
+.tabela td.acoes{text-align:right;white-space:nowrap}
+.tabela img{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--pf-azul-100)}
+@media (max-width:700px){
+  .tabela thead{display:none}
+  .tabela tr{display:grid;grid-template-columns:1fr auto;padding:8px 4px;border-bottom:1px solid var(--pf-azul-100)}
+  .tabela td{border:0;padding:3px 8px}
+  .tabela td.acoes{grid-column:1/-1;text-align:left}
+  .tabela td.oculto-mob{display:none}
+}
+
+.interruptor{position:relative;display:inline-flex;width:46px;height:28px;flex:none}
+.interruptor input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer;z-index:1}
+.interruptor span{position:absolute;inset:0;border-radius:999px;background:#c9ced2;transition:background .2s}
+.interruptor span::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.interruptor input:checked+span{background:var(--pf-verde)}
+.interruptor input:checked+span::after{transform:translateX(18px)}
+.interruptor input:focus-visible+span{outline:2px solid var(--pf-azul-500);outline-offset:2px}
+
+.campo{display:grid;gap:5px;margin-bottom:12px}
+.campo>span{font-size:13px;font-weight:600}
+.campo input:not([type=checkbox]),.campo select,.campo textarea{width:100%;padding:10px 12px;border:1.5px solid var(--pf-azul-100);border-radius:10px;background:var(--pf-branco)}
+.campo textarea{min-height:80px;resize:vertical}
+.campo small{color:var(--pf-cinza-texto)}
+.marcar{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:500}
+.marcar input{width:20px;height:20px}
+.linha-campos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+dialog{width:min(560px,100%);max-height:92vh;margin:auto auto 0;padding:0;border:0;border-radius:18px 18px 0 0;background:var(--pf-branco);color:inherit}
+@media (min-width:640px){dialog{margin:auto;border-radius:18px}}
+dialog::backdrop{background:rgba(6,40,63,.55)}
+dialog form{display:flex;flex-direction:column;max-height:92vh}
+.dlg__corpo{overflow-y:auto;padding:20px}
+.dlg__corpo h2{font-size:20px;margin-bottom:16px}
+.dlg__rodape{display:flex;gap:8px;justify-content:flex-end;padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--pf-azul-100)}
+
+.aviso{padding:10px 12px;border-radius:10px;font-weight:500;margin-bottom:12px}
+.aviso--erro{background:var(--pf-erro-fundo);color:var(--pf-erro)}
+.toast{position:fixed;left:50%;bottom:20px;translate:-50% 0;z-index:100;padding:10px 18px;border-radius:999px;background:var(--pf-azul-900);color:#fff;font-weight:600;box-shadow:0 6px 20px rgba(6,40,63,.3)}
+
+.login{max-width:360px;margin:12vh auto;padding:0 16px;text-align:center}
+.login img{width:96px;border-radius:50%;margin-bottom:12px}
+.login form{text-align:left;margin-top:18px}
+.dias{display:grid;gap:6px}
+.dia{display:grid;grid-template-columns:70px auto 1fr 1fr;gap:8px;align-items:center}
+.dia input[type=time]{padding:8px;border:1.5px solid var(--pf-azul-100);border-radius:8px;width:100%}
+.vazio{padding:30px;text-align:center;color:var(--pf-cinza-texto)}
+.kpi--alerta .numero{color:var(--pf-erro)}
+.secao-rel{margin-top:22px}
+.secao-rel h3{font-size:16px;margin-bottom:8px}
+.periodo{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.periodo .campo{margin:0;min-width:140px}
+.num{text-align:right;white-space:nowrap}
+@media (max-width:700px){
+  .tabela.tabela--fixa thead{display:table-header-group}
+  .tabela.tabela--fixa tr{display:table-row;padding:0}
+  .tabela.tabela--fixa td{display:table-cell;padding:8px 10px;border-bottom:1px solid var(--pf-azul-100)}
+}
+@media print{
+  .topo,.periodo,.nao-imprimir,.toast{display:none!important}
+  body{background:#fff}
+  main{padding:0}
+  .painel,.tabela{break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<section class="login" id="telaLogin" hidden>
+  <img src="./Petitfour_files/logo-petitfour.png" alt="Petitfour">
+  <h1>Painel Petitfour</h1>
+  <form id="formLogin">
+    <div class="aviso aviso--erro" id="erroLogin" hidden></div>
+    <label class="campo"><span>Senha</span><input type="password" id="senha" autocomplete="current-password" required></label>
+    <button class="btn" style="width:100%">Entrar</button>
+  </form>
+</section>
+
+<div id="app" hidden>
+  <header class="topo">
+    <div class="topo__linha">
+      <img src="./Petitfour_files/logo-petitfour.png" alt="">
+      <h1>Painel</h1>
+      <span class="tag" id="lojaStatus"></span>
+      <button class="topo__sair" id="sair">Sair</button>
+    </div>
+    <nav class="abas" id="abas">
+      <button class="aba" data-aba="inicio">Início</button>
+      <button class="aba" data-aba="relatorio">Relatórios</button>
+      <button class="aba" data-aba="pedidos">Pedidos <span class="qtd" id="qtdNovos" hidden></span></button>
+      <button class="aba" data-aba="encomendas">Encomendas</button>
+      <button class="aba" data-aba="produtos">Produtos</button>
+      <button class="aba" data-aba="categorias">Categorias</button>
+      <button class="aba" data-aba="bairros">Delivery</button>
+      <button class="aba" data-aba="cupons">Cupons</button>
+      <button class="aba" data-aba="config">Configurações</button>
+    </nav>
+  </header>
+  <main id="conteudo"></main>
+</div>
+
+<dialog id="dlg"><form id="dlgForm" method="dialog" novalidate>
+  <div class="dlg__corpo"><h2 id="dlgTitulo"></h2><div class="aviso aviso--erro" id="dlgErro" hidden></div><div id="dlgCampos"></div></div>
+  <div class="dlg__rodape"><button class="btn btn--leve" type="button" id="dlgCancelar">Cancelar</button><button class="btn" id="dlgSalvar">Salvar</button></div>
+</form></dialog>
+
+<script>
+/* ============ BASE ============ */
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const brl = c => 'R$ ' + (c / 100).toFixed(2).replace('.', ',');
+const reais = c => c == null ? '' : (c / 100).toFixed(2).replace('.', ',');
+const centavos = v => { const n = Number(String(v).replace(/\./g, '').replace(',', '.')); return Number.isFinite(n) ? Math.round(n * 100) : NaN; };
+const DIAS = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const fmtAgenda = iso => { const d = new Date(iso.slice(0,10) + 'T12:00:00Z'); return `${DIAS[d.getUTCDay()].slice(0,3)} ${iso.slice(8,10)}/${iso.slice(5,7)} às ${iso.slice(11,16)}`; };
+const fmtHora = iso => new Date(iso).toLocaleString('pt-BR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+const STATUS = {
+  novo:'Novo', recebido:'Recebido', em_preparacao:'Em preparação', pronto:'Pronto',
+  saiu_para_entrega:'Saiu para entrega', entregue:'Entregue', pronto_retirada:'Pronto para retirada',
+  retirado:'Retirado', cancelado:'Cancelado',
+};
+const ALERG = { lactose:'Lactose', gluten:'Glúten', ovo:'Ovo', avela:'Avelã' };
+
+let token = (() => { try { return sessionStorage.getItem('pf_admin') || ''; } catch { return ''; } })();
+function salvarToken(t){ token = t; try { t ? sessionStorage.setItem('pf_admin', t) : sessionStorage.removeItem('pf_admin'); } catch {} }
+
+async function api(metodo, rota, corpo){
+  const r = await fetch('/api/admin' + rota, {
+    method: metodo,
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token },
+    body: corpo ? JSON.stringify(corpo) : undefined,
+  });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 401 && rota !== '/login'){ salvarToken(''); mostrarLogin(); throw new Error(j.erro); }
+  if (!r.ok) throw new Error(j.erro || 'Erro ao salvar.');
+  return j;
+}
+function toast(msg){
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status');
+  document.body.appendChild(t); setTimeout(() => t.remove(), 2600);
+}
+const interruptor = (ativo, attrs) =>
+  `<label class="interruptor" title="${ativo ? 'Ativo' : 'Inativo'}"><input type="checkbox" ${ativo ? 'checked' : ''} ${attrs} aria-label="Ativo"><span></span></label>`;
+
+/* ============ LOGIN ============ */
+function mostrarLogin(){ $('app').hidden = true; $('telaLogin').hidden = false; $('senha').focus(); }
+$('formLogin').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    salvarToken((await api('POST', '/login', { senha: $('senha').value })).token);
+    $('senha').value = ''; $('erroLogin').hidden = true;
+    iniciar();
+  } catch (err) { $('erroLogin').textContent = err.message; $('erroLogin').hidden = false; }
+});
+$('sair').addEventListener('click', () => { salvarToken(''); mostrarLogin(); });
+
+/* ============ NAVEGAÇÃO ============ */
+let aba = 'inicio', timer = null;
+const telas = {};
+function irPara(nova){
+  aba = nova;
+  document.querySelectorAll('.aba').forEach(b => b.setAttribute('aria-current', String(b.dataset.aba === aba)));
+  try { sessionStorage.setItem('pf_aba', aba); } catch {}
+  $('conteudo').innerHTML = '<p class="vazio">Carregando…</p>';
+  telas[aba]().catch(e => { if (token) $('conteudo').innerHTML = `<div class="aviso aviso--erro">${esc(e.message)}</div>`; });
+}
+$('abas').addEventListener('click', e => { const b = e.target.closest('[data-aba]'); if (b) irPara(b.dataset.aba); });
+
+async function atualizarCabecalho(){
+  const r = await api('GET', '/resumo');
+  const novos = r.porStatus.find(s => s.status === 'novo')?.n || 0;
+  $('qtdNovos').hidden = !novos; $('qtdNovos').textContent = novos;
+  $('lojaStatus').textContent = r.aberto ? 'Loja aberta' : 'Loja fechada';
+  $('lojaStatus').className = 'tag ' + (r.aberto ? 'tag--verde' : 'tag--erro');
+  return r;
+}
+
+function iniciar(){
+  $('telaLogin').hidden = true; $('app').hidden = false;
+  let salva = 'inicio'; try { salva = sessionStorage.getItem('pf_aba') || 'inicio'; } catch {}
+  irPara(telas[salva] ? salva : 'inicio');
+  clearInterval(timer);
+  // pedidos novos aparecem sozinhos
+  timer = setInterval(() => {
+    if (!token) return;
+    atualizarCabecalho().catch(() => {});
+    if ((aba === 'pedidos' || aba === 'inicio') && !$('dlg').open) telas[aba]().catch(() => {});
+    imprimirNovos().catch(() => {});
+  }, 30000);
+}
+
+/* ============ INÍCIO ============ */
+telas.inicio = async () => {
+  const r = await atualizarCabecalho();
+  const n = s => r.porStatus.find(x => x.status === s)?.n || 0;
+  $('conteudo').innerHTML = `
+    <div class="cab"><h2>Hoje</h2></div>
+    <div class="grade grade--4">
+      <div class="painel"><div class="rotulo">Pedidos hoje</div><div class="numero">${r.hoje.n}</div></div>
+      <div class="painel"><div class="rotulo">Vendido hoje</div><div class="numero">${brl(r.hoje.total)}</div></div>
+      <div class="painel"><div class="rotulo">Novos</div><div class="numero">${n('novo')}</div></div>
+      <div class="painel"><div class="rotulo">Em preparação</div><div class="numero">${n('em_preparacao')}</div></div>
+    </div>
+    <div class="cab" style="margin-top:22px"><h2>Próximas encomendas</h2></div>
+    ${r.proximasEncomendas.length ? `<table class="tabela"><tbody>${r.proximasEncomendas.map(e => `
+      <tr><td><strong>#${String(e.id).padStart(4,'0')}</strong> ${esc(e.cliente)}</td><td>${fmtAgenda(e.agendado_para)}</td>
+      <td>${brl(e.total)}</td><td><span class="tag">${STATUS[e.status]}</span></td></tr>`).join('')}</tbody></table>`
+      : '<p class="vazio">Nenhuma encomenda pendente.</p>'}
+    <p class="muted" style="margin-top:18px">"Vendido hoje" soma pedidos não cancelados criados hoje. O pagamento acontece na entrega/retirada.</p>`;
+};
+
+/* ============ PEDIDOS ============ */
+const GRUPOS = [
+  ['abertos:', 'Em aberto'], ['abertos:novo', 'Novos'], ['abertos:recebido', 'Recebidos'],
+  ['abertos:em_preparacao', 'Em preparação'], ['abertos:pronto', 'Prontos'], ['abertos:pronto_retirada', 'Prontos p/ retirada'],
+  ['abertos:saiu_para_entrega', 'Em entrega'], ['finalizados:', 'Finalizados'], ['cancelados:', 'Cancelados'],
+];
+let filtroPedidos = 'abertos:';
+
+function cardPedido(p){
+  pedidosVistos.set(p.id, p);
+  const i = p.fluxo.indexOf(p.status), proximo = p.fluxo[i + 1];
+  // correção: voltar uma fase, ou reabrir um cancelado na fase em que estava
+  const voltar = p.status === 'cancelado'
+    ? p.historico.filter(h => h.status !== 'cancelado').at(-1)?.status
+    : p.fluxo[i - 1];
+  const final = ['entregue','retirado','cancelado'].includes(p.status);
+  const zap = p.telefone.length <= 11 ? '55' + p.telefone : p.telefone;
+  return `<article class="painel pedido">
+    <div class="pedido__topo">
+      <h3>#${String(p.id).padStart(4,'0')}</h3>
+      <span class="tag ${p.status === 'cancelado' ? 'tag--erro' : final ? 'tag--verde' : p.status === 'novo' ? 'tag--rosa' : ''}">${STATUS[p.status]}</span>
+      <span class="tag">${p.modalidade === 'delivery' ? '🚚 Delivery' : '🛍️ Retirada'}</span>
+      ${p.tipo === 'encomenda' ? '<span class="tag tag--rosa">🎂 Encomenda</span>' : ''}
+      <span class="muted" style="margin-left:auto">${fmtHora(p.criado_em)}</span>
+    </div>
+    <div><strong>${esc(p.cliente)}</strong> · <a href="https://wa.me/${zap}" target="_blank" rel="noopener">${esc(p.telefone)}</a></div>
+    ${p.agendado_para ? `<div>📅 <strong>${fmtAgenda(p.agendado_para)}</strong></div>` : ''}
+    ${p.modalidade === 'delivery' ? `<div>📍 ${esc(p.endereco)} — <strong>${esc(p.bairro_nome)}</strong></div>` : ''}
+    <ul class="pedido__itens">${p.itens.map(it => `<li>${it.qtd}× ${esc(it.nome)} <span class="muted">${brl(it.subtotal)}</span></li>`).join('')}</ul>
+    ${p.observacoes ? `<div class="aviso" style="background:var(--pf-rosa-200);margin:0">📝 ${esc(p.observacoes)}</div>` : ''}
+    <div class="muted">Produtos ${brl(p.subtotal)}${p.taxa ? ` · Entrega ${brl(p.taxa)}` : ''}${p.desconto ? ` · Desconto −${brl(p.desconto)} (${esc(p.cupom_codigo)})` : ''} · <strong style="color:var(--pf-azul-700)">Total ${brl(p.total)}</strong></div>
+    <div class="pedido__acoes">
+      ${final ? '' : `<button class="btn btn--rosa" data-status="${proximo}" data-id="${p.id}">Marcar: ${STATUS[proximo]}</button>`}
+      <button class="btn btn--leve btn--peq" data-imprimir="${p.id}">🖨️ Imprimir</button>
+      ${final ? '' : `<button class="btn btn--perigo btn--peq" data-status="cancelado" data-id="${p.id}">Cancelar</button>`}
+      ${voltar ? `<button class="btn btn--leve btn--peq" data-status="${voltar}" data-id="${p.id}" data-voltar="${p.status === 'cancelado' ? 'reabrir' : 'voltar'}">↩ ${p.status === 'cancelado' ? 'Reabrir' : 'Voltar'} para: ${STATUS[voltar]}</button>` : ''}</div>
+    <details><summary>Histórico (${p.historico.length})</summary>
+      <ul class="pedido__itens">${p.historico.map(h => `<li>${STATUS[h.status]} — ${fmtHora(h.em)}${h.obs ? ' · ' + esc(h.obs) : ''}</li>`).join('')}</ul></details>
+  </article>`;
+}
+
+async function acaoStatus(e, recarregar){
+  const b = e.target.closest('[data-status]');
+  if (!b) return;
+  let obs = '';
+  if (b.dataset.voltar){
+    const acao = b.dataset.voltar === 'reabrir' ? 'Reabrir este pedido' : 'Voltar este pedido';
+    obs = prompt(`${acao} para "${STATUS[b.dataset.status]}"? Motivo da correção (opcional):`);
+    if (obs === null) return;
+    obs = obs.trim() ? 'Correção: ' + obs.trim() : '';
+  } else if (b.dataset.status === 'cancelado'){
+    obs = prompt('Cancelar este pedido? Motivo (opcional):');
+    if (obs === null) return;
+  }
+  b.disabled = true;
+  try { await api('POST', `/pedidos/${b.dataset.id}/status`, { status: b.dataset.status, obs }); toast('Status atualizado'); await recarregar(); atualizarCabecalho().catch(() => {}); }
+  catch (err) { toast(err.message); b.disabled = false; }
+}
+
+telas.pedidos = async () => {
+  const [grupo, status] = filtroPedidos.split(':');
+  const lista = await api('GET', `/pedidos?tipo=pedido&grupo=${grupo}${status ? '&status=' + status : ''}`);
+  if (aba !== 'pedidos') return;
+  $('conteudo').innerHTML = `
+    <div class="cab"><h2>Pedidos</h2><button class="btn btn--leve btn--peq" id="recarregar">Atualizar</button></div>
+    <div class="filtros">${GRUPOS.map(([k, n]) => `<button class="filtro" data-filtro="${k}" aria-pressed="${k === filtroPedidos}">${n}</button>`).join('')}</div>
+    <div class="grade grade--2">${lista.map(cardPedido).join('') || '<p class="vazio">Nenhum pedido aqui.</p>'}</div>`;
+  $('recarregar').onclick = () => telas.pedidos();
+  $('conteudo').onclick = e => {
+    const f = e.target.closest('[data-filtro]');
+    if (f){ filtroPedidos = f.dataset.filtro; telas.pedidos(); return; }
+    acaoStatus(e, telas.pedidos);
+  };
+};
+
+/* ============ ENCOMENDAS + AGENDA ============ */
+let filtroEnc = 'abertos';
+telas.encomendas = async () => {
+  const [lista, bloqueios] = await Promise.all([api('GET', `/pedidos?tipo=encomenda&grupo=${filtroEnc}`), api('GET', '/bloqueios')]);
+  if (aba !== 'encomendas') return;
+  $('conteudo').innerHTML = `
+    <div class="cab"><h2>Encomendas</h2></div>
+    <div class="filtros">${[['abertos','Agendadas'],['finalizados','Finalizadas'],['cancelados','Canceladas']].map(([k, n]) =>
+      `<button class="filtro" data-filtro="${k}" aria-pressed="${k === filtroEnc}">${n}</button>`).join('')}</div>
+    <div class="grade grade--2">${lista.map(cardPedido).join('') || '<p class="vazio">Nenhuma encomenda aqui.</p>'}</div>
+
+    <div class="cab" style="margin-top:28px"><h2>Datas e horários bloqueados</h2></div>
+    <form class="painel" id="formBloqueio" style="margin-bottom:12px">
+      <div class="linha-campos">
+        <label class="campo"><span>Data</span><input type="date" name="data" required></label>
+        <label class="campo"><span>Horário <small>(vazio = dia todo)</small></span><input type="time" name="hora"></label>
+      </div>
+      <label class="campo"><span>Motivo <small>(opcional)</small></span><input name="motivo" maxlength="100" placeholder="Ex.: feriado, evento, agenda cheia"></label>
+      <button class="btn">Bloquear</button>
+      <p class="muted" style="margin:10px 0 0">Bloqueios valem para retiradas e encomendas. Dias de funcionamento, horários, intervalo e capacidade ficam em <strong>Configurações</strong>.</p>
+    </form>
+    ${bloqueios.length ? `<table class="tabela"><tbody>${bloqueios.map(b => `
+      <tr><td><strong>${b.data.split('-').reverse().join('/')}</strong> ${b.hora ? 'às ' + b.hora : '· dia todo'}</td>
+      <td>${esc(b.motivo)}</td><td class="acoes"><button class="btn btn--perigo btn--peq" data-desbloquear="${b.id}">Remover</button></td></tr>`).join('')}</tbody></table>`
+      : '<p class="vazio">Nenhum bloqueio futuro.</p>'}`;
+  $('formBloqueio').onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    try { await api('POST', '/bloqueios', Object.fromEntries(f)); toast('Bloqueio criado'); telas.encomendas(); }
+    catch (err) { toast(err.message); }
+  };
+  $('conteudo').onclick = async e => {
+    const f = e.target.closest('[data-filtro]');
+    if (f){ filtroEnc = f.dataset.filtro; telas.encomendas(); return; }
+    const d = e.target.closest('[data-desbloquear]');
+    if (d){ await api('DELETE', '/bloqueios/' + d.dataset.desbloquear).catch(err => toast(err.message)); telas.encomendas(); return; }
+    acaoStatus(e, telas.encomendas);
+  };
+};
+
+/* ============ FORMULÁRIO GENÉRICO ============ */
+/* campos: [nome, rótulo, tipo, opções]; tipos: texto, area, dinheiro, inteiro, bool, select, data, alergenos */
+function abrirForm(titulo, campos, valores, salvar){
+  $('dlgTitulo').textContent = titulo;
+  $('dlgErro').hidden = true;
+  $('dlgCampos').innerHTML = campos.map(([nome, rotulo, tipo, extra]) => {
+    const v = valores[nome];
+    if (tipo === 'bool') return `<label class="marcar"><input type="checkbox" name="${nome}" ${v ? 'checked' : ''}> ${rotulo}</label>`;
+    if (tipo === 'alergenos') return `<fieldset class="campo" style="border:0;padding:0"><span>${rotulo}</span>
+      <div style="display:flex;flex-wrap:wrap;gap:12px">${Object.entries(ALERG).map(([k, n]) =>
+        `<label class="marcar"><input type="checkbox" name="alerg_${k}" ${(v || []).includes(k) ? 'checked' : ''}> ${n}</label>`).join('')}</div></fieldset>`;
+    const dica = extra?.dica ? `<small>${extra.dica}</small>` : '';
+    if (tipo === 'select') return `<label class="campo"><span>${rotulo}</span><select name="${nome}">${extra.opcoes.map(([ov, on]) =>
+      `<option value="${esc(ov)}" ${String(ov) === String(v ?? '') ? 'selected' : ''}>${esc(on)}</option>`).join('')}</select>${dica}</label>`;
+    if (tipo === 'area') return `<label class="campo"><span>${rotulo}</span><textarea name="${nome}" maxlength="${extra?.max || 1000}">${esc(v)}</textarea>${dica}</label>`;
+    const val = tipo === 'dinheiro' ? reais(v) : (v ?? '');
+    const input = { dinheiro: 'inputmode="decimal" placeholder="0,00"', inteiro: 'inputmode="numeric"', data: 'type="date"' }[tipo] || '';
+    return `<label class="campo"><span>${rotulo}</span><input name="${nome}" value="${esc(val)}" ${input} maxlength="${extra?.max || 300}">${dica}</label>`;
+  }).join('');
+  $('dlgForm').onsubmit = async e => {
+    e.preventDefault();
+    const fd = new FormData($('dlgForm')), dados = {};
+    for (const [nome, , tipo] of campos){
+      if (tipo === 'bool') dados[nome] = fd.has(nome);
+      else if (tipo === 'alergenos') dados[nome] = Object.keys(ALERG).filter(k => fd.has('alerg_' + k));
+      else if (tipo === 'dinheiro') dados[nome] = fd.get(nome) === '' ? '' : centavos(fd.get(nome));
+      else dados[nome] = fd.get(nome);
+    }
+    $('dlgSalvar').disabled = true;
+    try { await salvar(dados); $('dlg').close(); toast('Salvo'); irPara(aba); }
+    catch (err) { $('dlgErro').textContent = err.message; $('dlgErro').hidden = false; $('dlgCampos').parentElement.scrollTop = 0; }
+    finally { $('dlgSalvar').disabled = false; }
+  };
+  $('dlg').showModal();
+}
+$('dlgCancelar').onclick = () => $('dlg').close();
+
+/* lista genérica com ativar/desativar */
+async function telaLista({ tabela, titulo, novo, colunas, editar, nota = '' }){
+  const lista = await api('GET', '/' + tabela);
+  if (aba !== tabela) return;
+  $('conteudo').innerHTML = `
+    <div class="cab"><h2>${titulo}</h2><button class="btn btn--rosa" id="novo">+ ${novo}</button></div>
+    ${nota}
+    <table class="tabela"><thead><tr>${colunas.map(c => `<th class="${c.cls || ''}">${c.t}</th>`).join('')}<th>Ativo</th><th></th></tr></thead>
+    <tbody>${lista.map(r => `<tr class="${r.ativo ? '' : 'inativo'}">
+      ${colunas.map(c => `<td class="${c.cls || ''}">${c.v(r)}</td>`).join('')}
+      <td>${interruptor(r.ativo, `data-ativo="${esc(r.id)}"`)}</td>
+      <td class="acoes"><button class="btn btn--leve btn--peq" data-editar="${esc(r.id)}">Editar</button></td></tr>`).join('')
+      || `<tr><td colspan="9" class="vazio">Nada cadastrado ainda.</td></tr>`}</tbody></table>`;
+  $('novo').onclick = () => editar(null);
+  $('conteudo').onclick = e => { const b = e.target.closest('[data-editar]'); if (b) editar(lista.find(r => String(r.id) === b.dataset.editar)); };
+  $('conteudo').onchange = async e => {
+    const t = e.target.closest('[data-ativo]');
+    if (!t) return;
+    try { await api('PATCH', `/${tabela}/${encodeURIComponent(t.dataset.ativo)}/ativo`, { ativo: t.checked }); toast(t.checked ? 'Ativado' : 'Desativado'); irPara(aba); }
+    catch (err) { toast(err.message); t.checked = !t.checked; }
+  };
+}
+
+/* ============ PRODUTOS ============ */
+telas.produtos = async () => {
+  const cats = await api('GET', '/categorias');
+  const nomeCat = id => cats.find(c => c.id === id)?.nome ?? id;
+  const foto = f => f ? (/^https:/.test(f) ? f : './Petitfour_files/' + f) : '';
+  await telaLista({
+    tabela: 'produtos', titulo: 'Produtos', novo: 'Produto',
+    nota: '<p class="muted">Produto desativado some do site e não pode ser pedido, mas continua aqui para reativar.</p>',
+    colunas: [
+      { t: '', cls: 'oculto-mob', v: r => r.foto ? `<img src="${esc(foto(r.foto))}" alt="">` : '' },
+      { t: 'Produto', v: r => `<strong>${esc(r.nome)}</strong><br><span class="muted">${esc(nomeCat(r.categoria_id))}</span>` },
+      { t: 'Preço', v: r => brl(r.preco) },
+      { t: 'Onde aparece', cls: 'oculto-mob', v: r => [r.cardapio && 'Cardápio', r.encomenda && 'Encomendas'].filter(Boolean).join(' · ') || '—' },
+    ],
+    editar: r => abrirForm(r ? 'Editar produto' : 'Novo produto', [
+      ['nome', 'Nome', 'texto', { max: 80 }],
+      ['preco', 'Preço (R$)', 'dinheiro'],
+      ['categoria_id', 'Categoria', 'select', { opcoes: cats.map(c => [c.id, c.nome + (c.ativo ? '' : ' (inativa)')]) }],
+      ['descricao', 'Descrição curta (card)', 'texto', { max: 120 }],
+      ['longa', 'Descrição completa (ficha)', 'area'],
+      ['foto', 'Foto', 'texto', { dica: 'Nome do arquivo em Petitfour_files (ex.: cookie.jpg) ou link https.' }],
+      ['alergenos', 'Alérgenos', 'alergenos'],
+      ['selo', 'Selo (opcional)', 'texto', { max: 30, dica: 'Ex.: Mais pedido, Queridinho.' }],
+      ['selo_rosa', 'Destaque do dia (selo rosa + aviso no topo)', 'bool'],
+      ['destaque', 'Posição em "Mais pedidos"', 'inteiro', { dica: 'Vazio = não aparece. 0 = primeiro.' }],
+      ['ordem', 'Ordem na categoria', 'inteiro'],
+      ['cardapio', 'Aparece no cardápio (pedir agora)', 'bool'],
+      ['encomenda', 'Disponível para encomenda', 'bool'],
+      ['ativo', 'Ativo', 'bool'],
+    ], r ?? { ativo: 1, cardapio: 1, encomenda: 1, categoria_id: cats[0]?.id, alergenos: [] },
+    d => r ? api('PUT', '/produtos/' + encodeURIComponent(r.id), d) : api('POST', '/produtos', d)),
+  });
+};
+
+/* ============ CATEGORIAS ============ */
+telas.categorias = () => telaLista({
+  tabela: 'categorias', titulo: 'Categorias', novo: 'Categoria',
+  nota: '<p class="muted">Categoria desativada esconde todos os seus produtos do site.</p>',
+  colunas: [{ t: 'Nome', v: r => `<strong>${esc(r.nome)}</strong>` }, { t: 'Ordem', v: r => r.ordem }],
+  editar: r => abrirForm(r ? 'Editar categoria' : 'Nova categoria', [
+    ['nome', 'Nome', 'texto', { max: 60 }], ['ordem', 'Ordem no cardápio', 'inteiro'], ['ativo', 'Ativa', 'bool'],
+  ], r ?? { ativo: 1, ordem: 0 }, d => r ? api('PUT', '/categorias/' + encodeURIComponent(r.id), d) : api('POST', '/categorias', d)),
+});
+
+/* ============ BAIRROS ============ */
+telas.bairros = () => telaLista({
+  tabela: 'bairros', titulo: 'Bairros e taxas de entrega', novo: 'Bairro',
+  nota: '<p class="muted">Só bairros ativos aparecem para o cliente. Fora da lista = sem delivery.</p>',
+  colunas: [{ t: 'Bairro', v: r => `<strong>${esc(r.nome)}</strong>` }, { t: 'Taxa', v: r => brl(r.taxa) }],
+  editar: r => abrirForm(r ? 'Editar bairro' : 'Novo bairro', [
+    ['nome', 'Bairro', 'texto', { max: 60 }], ['taxa', 'Taxa de entrega (R$)', 'dinheiro'], ['ativo', 'Ativo (entregamos)', 'bool'],
+  ], r ?? { ativo: 1 }, d => r ? api('PUT', '/bairros/' + r.id, d) : api('POST', '/bairros', d)),
+});
+
+/* ============ CUPONS ============ */
+telas.cupons = () => telaLista({
+  tabela: 'cupons', titulo: 'Cupons', novo: 'Cupom',
+  colunas: [
+    { t: 'Código', v: r => `<strong>${esc(r.codigo)}</strong>` },
+    { t: 'Desconto', v: r => r.tipo === 'percentual' ? r.valor + '%' : brl(r.valor) },
+    { t: 'Regras', cls: 'oculto-mob', v: r => [r.minimo ? 'mín. ' + brl(r.minimo) : '', r.validade ? 'até ' + r.validade.split('-').reverse().join('/') : ''].filter(Boolean).join(' · ') || '—' },
+    { t: 'Usos', v: r => r.usos + (r.limite_uso ? ' / ' + r.limite_uso : '') },
+  ],
+  editar: r => {
+    const campos = [
+      ['codigo', 'Código', 'texto', { max: 30 }],
+      ['tipo', 'Tipo', 'select', { opcoes: [['percentual', 'Percentual (%)'], ['fixo', 'Valor fixo (R$)']] }],
+      ['valor', 'Valor', 'texto', { dica: 'Percentual: número de 1 a 100. Fixo: valor em reais (ex.: 5,00).' }],
+      ['minimo', 'Pedido mínimo (R$)', 'dinheiro', { dica: 'Vazio = sem mínimo. Vale sobre o valor dos produtos.' }],
+      ['validade', 'Válido até (inclusive)', 'data'],
+      ['limite_uso', 'Limite de usos', 'inteiro', { dica: 'Vazio = ilimitado.' }],
+      ['ativo', 'Ativo', 'bool'],
+    ];
+    const vals = r ? { ...r, valor: r.tipo === 'fixo' ? reais(r.valor) : r.valor } : { ativo: 1, tipo: 'percentual' };
+    abrirForm(r ? 'Editar cupom' : 'Novo cupom', campos, vals, d => {
+      d.valor = d.tipo === 'fixo' ? centavos(d.valor) : Number(d.valor);
+      return r ? api('PUT', '/cupons/' + r.id, d) : api('POST', '/cupons', d);
+    });
+  },
+});
+
+/* ============ CONFIGURAÇÕES ============ */
+telas.config = async () => {
+  const c = await api('GET', '/config');
+  if (aba !== 'config') return;
+  const campo = (nome, rotulo, valor, extra = '') => `<label class="campo"><span>${rotulo}</span><input name="${nome}" value="${esc(valor)}" ${extra}></label>`;
+  $('conteudo').innerHTML = `
+    <div class="cab"><h2>Configurações</h2></div>
+    <form id="formConfig" class="grade grade--2">
+      <div class="painel">
+        <h3 style="margin-bottom:12px">Horário de funcionamento</h3>
+        <div class="dias">${[1,2,3,4,5,6,0].map(d => { const h = c.horarios[d]; return `
+          <div class="dia"><strong>${DIAS[d].slice(0,3)}</strong>
+            <label class="interruptor"><input type="checkbox" name="aberto_${d}" ${h.aberto ? 'checked' : ''} aria-label="Aberto ${DIAS[d]}"><span></span></label>
+            <input type="time" name="inicio_${d}" value="${h.inicio}" aria-label="Abre ${DIAS[d]}">
+            <input type="time" name="fim_${d}" value="${h.fim}" aria-label="Fecha ${DIAS[d]}"></div>`; }).join('')}</div>
+        <p class="muted">Define quando o delivery imediato funciona e quais horários aparecem para retirada e encomenda.</p>
+      </div>
+      <div class="painel">
+        <h3 style="margin-bottom:12px">Agenda</h3>
+        <div class="linha-campos">
+          ${campo('intervalo_min', 'Intervalo entre horários (min)', c.intervalo_min, 'inputmode="numeric"')}
+          ${campo('capacidade_por_horario', 'Pedidos por horário', c.capacidade_por_horario, 'inputmode="numeric"')}
+          ${campo('antecedencia_retirada_min', 'Antecedência da retirada (min)', c.antecedencia_retirada_min, 'inputmode="numeric"')}
+          ${campo('antecedencia_encomenda_h', 'Antecedência da encomenda (h, mín. 48)', c.antecedencia_encomenda_h, 'inputmode="numeric"')}
+          ${campo('dias_retirada', 'Dias à frente (retirada)', c.dias_retirada, 'inputmode="numeric"')}
+          ${campo('dias_encomenda', 'Dias à frente (encomenda)', c.dias_encomenda, 'inputmode="numeric"')}
+        </div>
+        ${campo('prazo_entrega', 'Prazo de entrega exibido', c.prazo_entrega, 'maxlength="30"')}
+      </div>
+      <div class="painel">
+        <h3 style="margin-bottom:12px">Informações da loja</h3>
+        ${campo('loja_nome', 'Nome', c.loja.nome, 'maxlength="60"')}
+        ${campo('loja_whatsapp', 'WhatsApp (com DDD)', c.loja.whatsapp, 'inputmode="tel" maxlength="20"')}
+        ${campo('loja_instagram', 'Instagram', c.loja.instagram, 'maxlength="40"')}
+        ${campo('loja_endereco_retirada', 'Endereço de retirada', c.loja.endereco_retirada, 'maxlength="200"')}
+        ${campo('loja_pagamento', 'Formas de pagamento (na entrega/retirada)', c.loja.pagamento, 'maxlength="120"')}
+      </div>
+      <div><button class="btn" style="width:100%">Salvar configurações</button></div>
+    </form>`;
+  $('formConfig').onsubmit = async e => {
+    e.preventDefault();
+    const f = new FormData(e.target), g = k => f.get(k);
+    const horarios = {};
+    for (let d = 0; d < 7; d++) horarios[d] = { aberto: f.has('aberto_' + d), inicio: g('inicio_' + d), fim: g('fim_' + d) };
+    try {
+      await api('PUT', '/config', {
+        horarios, prazo_entrega: g('prazo_entrega'),
+        ...Object.fromEntries(['intervalo_min','capacidade_por_horario','antecedencia_retirada_min','antecedencia_encomenda_h','dias_retirada','dias_encomenda'].map(k => [k, g(k)])),
+        loja: Object.fromEntries(['nome','whatsapp','instagram','endereco_retirada','pagamento'].map(k => [k, g('loja_' + k)])),
+      });
+      toast('Configurações salvas'); lojaCache = null; atualizarCabecalho().catch(() => {});
+    } catch (err) { toast(err.message); }
+  };
+
+  // Impressora: preferência deste computador (fica no navegador, não no servidor)
+  const bloco = document.createElement('div');
+  bloco.className = 'painel';
+  bloco.style.marginTop = '12px';
+  bloco.innerHTML = `
+    <h3 style="margin-bottom:12px">Impressora de comprovantes (este computador)</h3>
+    <label class="campo"><span>Largura do papel</span>
+      <select id="papel"><option value="80">80 mm (mais comum)</option><option value="58">58 mm</option></select></label>
+    <label class="marcar"><input type="checkbox" id="autoImprimir"> Imprimir automaticamente cada pedido novo</label>
+    <p class="muted" style="margin:0 0 12px">Com o painel aberto, cada pedido novo é impresso em até 30 segundos. Para imprimir sem a janela de confirmação, abra o Chrome com <code>--kiosk-printing</code> e deixe a térmica como impressora padrão.</p>
+    <button class="btn btn--leve" type="button" id="testeImpressao">🖨️ Imprimir teste</button>`;
+  $('conteudo').appendChild(bloco);
+  $('papel').value = String(pref.ler('pf_papel', 80));
+  $('papel').onchange = e => { pref.gravar('pf_papel', Number(e.target.value)); toast('Largura salva'); };
+  $('autoImprimir').checked = pref.ler('pf_auto_imprimir', false);
+  $('autoImprimir').onchange = async e => {
+    pref.gravar('pf_auto_imprimir', e.target.checked);
+    // ao ligar, não reimprime o que já estava na fila
+    if (e.target.checked) {
+      const novos = await api('GET', '/pedidos?grupo=abertos&status=novo');
+      pref.gravar('pf_impressos', novos.map(p => p.id));
+    }
+    toast(e.target.checked ? 'Impressão automática ligada' : 'Impressão automática desligada');
+  };
+  $('testeImpressao').onclick = () => imprimirPedido({
+    id: 0, tipo: 'pedido', modalidade: 'retirada', cliente: 'Teste de impressão', telefone: '98900000000',
+    criado_em: new Date().toISOString(), agendado_para: null, itens: [{ qtd: 2, nome: 'Cookie Tradicional', preco: 2050, subtotal: 4100 }],
+    subtotal: 4100, taxa: 0, desconto: 0, total: 4100, observacoes: 'Se esta nota saiu legível e sem cortes, a impressora está pronta.', status: 'novo',
+  });
+};
+
+/* ============ RELATÓRIOS ============ */
+const hojeLocal = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+const somaDias = (d, n) => new Date(Date.parse(d + 'T12:00:00Z') + n * 864e5).toISOString().slice(0, 10);
+let periodoRel = null, ultimoRel = null;
+const fmtData = d => d.split('-').reverse().join('/');
+
+telas.relatorio = async () => {
+  const hoje = hojeLocal();
+  periodoRel ??= { de: hoje.slice(0, 8) + '01', ate: hoje };
+  const r = await api('GET', `/relatorio?de=${periodoRel.de}&ate=${periodoRel.ate}`);
+  if (aba !== 'relatorio') return;
+  ultimoRel = r;
+  const t = r.totais, c = r.cancelados;
+  const tabela = (cab, linhas, vazio) => linhas.length
+    ? `<div style="overflow-x:auto"><table class="tabela tabela--fixa"><thead><tr>${cab.map(([h, n]) => `<th class="${n ? 'num' : ''}">${h}</th>`).join('')}</tr></thead>
+       <tbody>${linhas.join('')}</tbody></table></div>` : `<p class="muted">${vazio}</p>`;
+  const MOD = { delivery: '🚚 Delivery', retirada: '🛍️ Retirada' };
+  $('conteudo').innerHTML = `
+    <div class="cab"><h2>Relatório · ${fmtData(r.de)} a ${fmtData(r.ate)}</h2></div>
+    <form class="periodo painel" id="formPeriodo">
+      <label class="campo"><span>De</span><input type="date" name="de" value="${r.de}" max="${hoje}"></label>
+      <label class="campo"><span>Até</span><input type="date" name="ate" value="${r.ate}" max="${hoje}"></label>
+      <button class="btn">Ver</button>
+      <button class="btn btn--leve btn--peq" type="button" data-rapido="hoje">Hoje</button>
+      <button class="btn btn--leve btn--peq" type="button" data-rapido="7">7 dias</button>
+      <button class="btn btn--leve btn--peq" type="button" data-rapido="mes">Este mês</button>
+      <button class="btn btn--leve btn--peq" type="button" data-rapido="mespassado">Mês passado</button>
+    </form>
+    <div class="grade grade--4" style="margin-top:14px">
+      <div class="painel"><div class="rotulo">Faturamento</div><div class="numero">${brl(t.total)}</div></div>
+      <div class="painel"><div class="rotulo">Pedidos</div><div class="numero">${t.pedidos}</div></div>
+      <div class="painel"><div class="rotulo">Ticket médio</div><div class="numero">${brl(t.pedidos ? Math.round(t.total / t.pedidos) : 0)}</div></div>
+      <div class="painel kpi--alerta"><div class="rotulo">Cancelados</div><div class="numero">${c.n}</div><div class="muted">${brl(c.total)} não faturados</div></div>
+    </div>
+    <div class="painel secao-rel">
+      <table style="width:100%;font-size:15px"><tbody>
+        <tr><td>Produtos vendidos</td><td class="num">${brl(t.produtos)}</td></tr>
+        <tr><td>+ Taxas de entrega</td><td class="num">${brl(t.taxas)}</td></tr>
+        <tr><td>− Descontos (cupons)</td><td class="num">${brl(t.descontos)}</td></tr>
+        <tr><td><strong>= Faturamento</strong></td><td class="num"><strong>${brl(t.total)}</strong></td></tr>
+      </tbody></table>
+      <p class="muted" style="margin:8px 0 0">Não inclui cancelados. Valores registrados no pedido; o pagamento acontece na entrega/retirada.</p>
+    </div>
+    <div class="secao-rel"><h3>Por dia</h3>${tabela([['Dia'], ['Pedidos', 1], ['Faturamento', 1], ['Cancelados', 1], ['Valor cancelado', 1]],
+      r.porDia.map(d => `<tr><td>${fmtData(d.dia)}</td><td class="num">${d.pedidos}</td><td class="num">${brl(d.total)}</td><td class="num">${d.cancelados}</td><td class="num">${brl(d.valor_cancelado)}</td></tr>`),
+      'Nenhum pedido no período.')}</div>
+    <div class="secao-rel"><h3>Por tipo</h3>${tabela([['Tipo'], ['Pedidos', 1], ['Faturamento', 1]],
+      r.porModalidade.map(m => `<tr><td>${m.tipo === 'encomenda' ? '🎂 Encomenda' : 'Pedido'} · ${MOD[m.modalidade]}</td><td class="num">${m.pedidos}</td><td class="num">${brl(m.total)}</td></tr>`),
+      'Nenhum pedido no período.')}</div>
+    <div class="secao-rel"><h3>Produtos mais vendidos</h3>${tabela([['Produto'], ['Qtd.', 1], ['Valor', 1]],
+      r.produtos.map(p => `<tr><td>${esc(p.nome)}</td><td class="num">${p.qtd}</td><td class="num">${brl(p.total)}</td></tr>`),
+      'Nenhum produto vendido no período.')}</div>
+    <div class="secao-rel"><h3>Cupons usados</h3>${tabela([['Cupom'], ['Usos', 1], ['Desconto dado', 1]],
+      r.cupons.map(k => `<tr><td>${esc(k.codigo)}</td><td class="num">${k.usos}</td><td class="num">${brl(k.desconto)}</td></tr>`),
+      'Nenhum cupom usado no período.')}</div>
+    <div class="secao-rel"><h3>Cancelamentos</h3>${tabela([['Pedido'], ['Cliente'], ['Valor', 1], ['Cancelado em'], ['Motivo']],
+      c.lista.map(x => `<tr><td>#${String(x.id).padStart(4, '0')}</td><td>${esc(x.cliente)}</td><td class="num">${brl(x.total)}</td>
+        <td>${x.cancelado_em ? fmtHora(x.cancelado_em) : '—'}</td><td>${esc(x.motivo) || '<span class="muted">sem motivo</span>'}</td></tr>`),
+      'Nenhum cancelamento no período.')}</div>
+    <div class="pedido__acoes nao-imprimir" style="margin-top:20px">
+      <button class="btn" id="exportarCsv">⬇️ Baixar planilha (CSV)</button>
+      <button class="btn btn--leve" onclick="print()">🖨️ Imprimir relatório</button>
+    </div>`;
+
+  $('formPeriodo').onsubmit = e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    periodoRel = { de: f.get('de'), ate: f.get('ate') };
+    if (periodoRel.de > periodoRel.ate) return toast('A data inicial precisa ser antes da final.');
+    telas.relatorio().catch(err => toast(err.message));
+  };
+  $('formPeriodo').onclick = e => {
+    const b = e.target.closest('[data-rapido]');
+    if (!b) return;
+    const k = b.dataset.rapido;
+    if (k === 'hoje') periodoRel = { de: hoje, ate: hoje };
+    if (k === '7') periodoRel = { de: somaDias(hoje, -6), ate: hoje };
+    if (k === 'mes') periodoRel = { de: hoje.slice(0, 8) + '01', ate: hoje };
+    if (k === 'mespassado') {
+      const fimPassado = somaDias(hoje.slice(0, 8) + '01', -1);
+      periodoRel = { de: fimPassado.slice(0, 8) + '01', ate: fimPassado };
+    }
+    telas.relatorio().catch(err => toast(err.message));
+  };
+  $('exportarCsv').onclick = () => exportarCsv(ultimoRel);
+};
+
+/* CSV no padrão do Excel brasileiro: ; como separador e vírgula decimal */
+function exportarCsv(r){
+  const v = c => (c / 100).toFixed(2).replace('.', ',');
+  const q = s => `"${String(s ?? '').replace(/"/g, '""')}"`;
+  const linhas = [
+    ['Relatório Petitfour', `${fmtData(r.de)} a ${fmtData(r.ate)}`], [],
+    ['Faturamento', v(r.totais.total)], ['Pedidos', r.totais.pedidos], ['Produtos', v(r.totais.produtos)],
+    ['Taxas de entrega', v(r.totais.taxas)], ['Descontos', v(r.totais.descontos)],
+    ['Cancelados', r.cancelados.n], ['Valor cancelado', v(r.cancelados.total)], [],
+    ['POR DIA'], ['Dia', 'Pedidos', 'Faturamento', 'Cancelados', 'Valor cancelado'],
+    ...r.porDia.map(d => [fmtData(d.dia), d.pedidos, v(d.total), d.cancelados, v(d.valor_cancelado)]), [],
+    ['PRODUTOS'], ['Produto', 'Quantidade', 'Valor'], ...r.produtos.map(p => [p.nome, p.qtd, v(p.total)]), [],
+    ['CUPONS'], ['Cupom', 'Usos', 'Desconto'], ...r.cupons.map(c => [c.codigo, c.usos, v(c.desconto)]), [],
+    ['CANCELAMENTOS'], ['Pedido', 'Cliente', 'Valor', 'Criado em', 'Cancelado em', 'Motivo'],
+    ...r.cancelados.lista.map(x => [x.id, x.cliente, v(x.total), fmtHora(x.criado_em), x.cancelado_em ? fmtHora(x.cancelado_em) : '', x.motivo]),
+  ];
+  const csv = '﻿' + linhas.map(l => l.map(q).join(';')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  a.download = `petitfour-relatorio-${r.de}-a-${r.ate}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ============ IMPRESSÃO TÉRMICA (comprovante não fiscal) ============
+   Texto monoespaçado com colunas fixas: 48 caracteres em 80 mm, 32 em 58 mm.
+   Funciona com qualquer térmica instalada no computador (Elgin, Bematech, Epson…). */
+const pref = {
+  ler(k, p){ try { return JSON.parse(localStorage.getItem(k)) ?? p; } catch { return p; } },
+  gravar(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+let lojaCache = null;
+const pedidosVistos = new Map();
+
+function textoNota(p, loja, col){
+  const linha = '-'.repeat(col);
+  const centro = s => ' '.repeat(Math.max(0, Math.floor((col - s.length) / 2))) + s;
+  const par = (a, b) => { a = String(a); b = String(b);
+    return a.length + b.length < col ? a + ' '.repeat(col - a.length - b.length) + b : a + '\n' + ' '.repeat(Math.max(0, col - b.length)) + b; };
+  const quebrar = (s, recuo = '') => { const out = []; let at = '';
+    for (const w of String(s).split(/\s+/)) {
+      if ((at + ' ' + w).trim().length > col - recuo.length) { if (at) out.push(at); at = w; } else at = (at + ' ' + w).trim();
+    }
+    if (at) out.push(at);
+    return out.map((l, i) => (i ? recuo : '') + l).join('\n'); };
+  const din = c => (c / 100).toFixed(2).replace('.', ',');
+  const tel = p.telefone.replace(/^(\d{2})(\d{4,5})(\d{4})$/, '($1) $2-$3');
+  return [
+    centro((loja.nome || 'Petitfour').toUpperCase()),
+    centro('COMPROVANTE DE PEDIDO'),
+    centro('NAO E DOCUMENTO FISCAL'),
+    linha,
+    par(`PEDIDO #${String(p.id).padStart(4, '0')}`, p.tipo === 'encomenda' ? 'ENCOMENDA' : ''),
+    par(p.modalidade === 'delivery' ? 'DELIVERY' : 'RETIRADA', fmtHora(p.criado_em)),
+    p.agendado_para ? `PARA: ${fmtAgenda(p.agendado_para)}` : null,
+    linha,
+    quebrar(`Cliente: ${p.cliente}`, '  '),
+    `Tel: ${tel}`,
+    p.modalidade === 'delivery' ? quebrar(`End: ${p.endereco} - ${p.bairro_nome}`, '  ') : null,
+    linha,
+    ...p.itens.flatMap(i => [quebrar(`${i.qtd}x ${i.nome}`, '   '), par(`   ${i.qtd} x ${din(i.preco)}`, din(i.subtotal))]),
+    linha,
+    par('Produtos', din(p.subtotal)),
+    p.modalidade === 'delivery' ? par('Entrega', din(p.taxa)) : null,
+    p.desconto ? par(`Desconto${p.cupom_codigo ? ' (' + p.cupom_codigo + ')' : ''}`, '-' + din(p.desconto)) : null,
+    par('TOTAL', 'R$ ' + din(p.total)),
+    linha,
+    quebrar(loja.pagamento || 'Pagamento na entrega ou na retirada'),
+    p.observacoes ? linha + '\n' + quebrar('OBS: ' + p.observacoes, '  ') : null,
+    linha,
+    centro('Obrigado!'),
+  ].filter(x => x != null).join('\n');
+}
+
+async function imprimirPedido(p){
+  lojaCache ??= (await api('GET', '/config')).loja;
+  const mm = pref.ler('pf_papel', 80), col = mm === 58 ? 32 : 48;
+  const util = mm === 58 ? 48 : 72;   // área imprimível real da cabeça térmica
+  const frame = document.createElement('iframe');
+  frame.style.cssText = 'position:fixed;width:0;height:0;border:0;right:0;bottom:0';
+  document.body.appendChild(frame);
+  const doc = frame.contentDocument;
+  doc.open();
+  doc.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Pedido ${p.id}</title><style>
+    @page{size:${mm}mm auto;margin:0}
+    html,body{margin:0;padding:0;background:#fff;color:#000}
+    pre{box-sizing:border-box;width:${util}mm;margin:0 auto;padding:3mm 0 8mm;font:bold ${(util / col / 0.6 * 0.95).toFixed(2)}mm/1.3 'Courier New',monospace;white-space:pre-wrap;word-break:break-word}
+  </style></head><body><pre>${esc(textoNota(p, lojaCache, col))}</pre></body></html>`);
+  doc.close();
+  await new Promise(r => setTimeout(r, 150));
+  frame.contentWindow.focus();
+  frame.contentWindow.print();   // bloqueia até a janela de impressão fechar
+  setTimeout(() => frame.remove(), 1000);
+}
+
+async function imprimirNovos(){
+  if (!pref.ler('pf_auto_imprimir', false)) return;
+  const feitos = new Set(pref.ler('pf_impressos', []));
+  const novos = (await api('GET', '/pedidos?grupo=abertos&status=novo')).filter(p => !feitos.has(p.id)).reverse();
+  for (const p of novos) {
+    feitos.add(p.id);
+    pref.gravar('pf_impressos', [...feitos].slice(-300));
+    await imprimirPedido(p);
+  }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-imprimir]');
+  if (b) imprimirPedido(pedidosVistos.get(Number(b.dataset.imprimir))).catch(err => toast(err.message));
+});
+
+token ? iniciar() : mostrarLogin();
+</script>
+</body>
+</html>

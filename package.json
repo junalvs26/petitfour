@@ -1,0 +1,10 @@
+{
+  "name": "petitfour",
+  "private": true,
+  "type": "module",
+  "engines": { "node": "22.x" },
+  "scripts": {
+    "start": "node servidor.js",
+    "test": "node --test"
+  }
+}

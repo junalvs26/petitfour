@@ -1,0 +1,1840 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Petitfour</title>
+<meta name="description" content="Peça direto do Petitfour — brownies, cookies e doces artesanais, em 3 cliques.">
+<meta name="theme-color" content="#0a3c5f">
+<link rel="icon" href="./Petitfour_files/logo-petitfour.png">
+<!-- PROTÓTIPO: horários, endereços e telefone ainda são fictícios.
+     Remover esta linha quando os dados reais entrarem e o site for pro ar. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=Caveat:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --pf-azul-100:#dce8ef;
+  --pf-azul-500:#1b5a85;
+  --pf-azul-700:#0a3c5f;
+  --pf-azul-900:#06283f;
+  --pf-branco:#fcfffd;
+  --pf-cinza-texto:#4a5a63;
+  --pf-rosa-200:#f3dee1;
+  --pf-rosa-400:#e1adb1;
+  --pf-rosa-600:#c98890;
+  --pf-creme:#fbf6ef;
+  --pf-erro:#9a3b2f;
+  --pf-erro-fundo:#fbe9e5;
+
+  /* Outfit acompanha a modelagem do logotipo: sans geométrico, bojos circulares,
+     x-height alta e terminais cortados. DM Sans mantém a mesma base geométrica
+     no texto corrido, com desenho otimizado para tamanhos pequenos. */
+  --fonte-titulo:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --fonte-texto:'DM Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+
+  /* tracking largo do "D O C E R I A" do logo */
+  --tracking-marca:.26em;
+
+  /* trato único de imagem: as fotos vieram de sessões diferentes e tinham
+     balanços de branco distintos. Aqui elas passam a parecer um ensaio só. */
+  --trato-foto:saturate(1.07) contrast(1.04) brightness(1.02) sepia(.07);
+
+  --sombra-card:0 1px 2px rgba(10,60,95,.06),0 4px 16px rgba(10,60,95,.08);
+  --sombra-card-hover:0 2px 4px rgba(10,60,95,.08),0 12px 32px rgba(10,60,95,.16);
+  --sombra-flutuante:0 -2px 24px rgba(6,40,63,.18);
+
+  --raio-sm:10px;
+  --raio-md:16px;
+  --raio-lg:24px;
+
+  --nav-altura:60px;
+  --barra-altura:76px;
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+body{
+  margin:0;
+  font-family:var(--fonte-texto);
+  color:var(--pf-azul-700);
+  background:var(--pf-creme);
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(var(--barra-altura) + env(safe-area-inset-bottom,0px));
+}
+
+img{display:block;max-width:100%}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+h1,h2,h3{margin:0;font-family:var(--fonte-titulo);font-weight:600;letter-spacing:-.02em}
+
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+
+/* ---------- HERO ---------- */
+.hero{
+  position:relative;
+  padding:28px 20px 40px;
+  text-align:center;
+  background:
+    radial-gradient(120% 90% at 50% -20%,rgba(225,173,177,.28) 0%,rgba(225,173,177,0) 60%),
+    linear-gradient(180deg,rgba(10,60,95,.84) 0%,rgba(6,40,63,.95) 80%),
+    url('./Petitfour_files/9b4b9f23-06e6-4e4c-918a-712b24d03a66.jpg') center 42%/cover,
+    var(--pf-azul-700);
+  overflow:hidden;
+}
+.hero__brilho{
+  position:absolute;inset:auto 50% auto 50%;
+  width:420px;height:420px;translate:-50% -55%;
+  background:radial-gradient(circle,rgba(225,173,177,.16) 0%,transparent 65%);
+  pointer-events:none;
+}
+
+/* Grão de papel: ruído fractal em SVG, tecido fino por cima do azul chapado.
+   Fica quase imperceptível — é sentido antes de ser visto. */
+.hero::after,
+.rodape::after{
+  content:'';
+  position:absolute;inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+  opacity:.055;
+  mix-blend-mode:overlay;
+  pointer-events:none;
+}
+.hero__topo{position:relative;display:flex;flex-direction:column;align-items:center;gap:14px}
+.hero__marca{
+  width:clamp(124px,32vw,150px);height:auto;
+  border-radius:50%;
+  box-shadow:
+    0 0 0 1px rgba(252,255,253,.12),
+    0 18px 44px rgba(6,40,63,.55);
+}
+.hero__assinatura{
+  margin:0;
+  font-size:11px;
+  letter-spacing:var(--tracking-marca);
+  text-transform:uppercase;
+  font-weight:500;
+  color:var(--pf-rosa-400);
+  /* compensa o tracking para o texto continuar óptimamente centrado */
+  text-indent:var(--tracking-marca);
+}
+
+.status{
+  position:relative;
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:18px;padding:7px 14px 7px 11px;
+  border-radius:999px;
+  background:rgba(252,255,253,.1);
+  border:1px solid rgba(252,255,253,.16);
+  backdrop-filter:blur(6px);
+  font-size:13px;font-weight:500;color:var(--pf-branco);
+}
+.status__ponto{position:relative;width:8px;height:8px;border-radius:50%;background:#5ad19a;flex:none}
+.status__ponto::after{
+  content:'';position:absolute;inset:-4px;border-radius:50%;
+  border:2px solid #5ad19a;opacity:0;
+}
+.status__sep{opacity:.4}
+.status>span{white-space:nowrap}
+@media (max-width:420px){.status{gap:6px;padding:7px 12px 7px 10px;font-size:12px}}
+.status--fechado .status__ponto{background:#c9ced2}
+.status--fechado .status__ponto::after{border-color:#c9ced2}
+.acomp-link{
+  position:relative;display:inline-flex;align-items:center;gap:6px;
+  margin-top:12px;padding:7px 14px;border-radius:999px;
+  font-size:13px;font-weight:600;
+  background:var(--pf-rosa-400);color:var(--pf-azul-700);
+}
+
+/* seletor de modo: pedir agora / encomendas */
+.modos{
+  position:relative;
+  display:flex;gap:4px;
+  margin:20px auto 0;padding:5px;
+  max-width:420px;
+  border-radius:999px;
+  background:rgba(252,255,253,.09);
+  border:1px solid rgba(252,255,253,.12);
+  backdrop-filter:blur(8px);
+}
+.modos__pilula{
+  position:absolute;top:5px;left:5px;
+  height:calc(100% - 10px);width:calc(50% - 7px);
+  border-radius:999px;background:var(--pf-rosa-400);
+  box-shadow:0 2px 10px rgba(0,0,0,.18);
+  pointer-events:none;
+}
+.modo{
+  position:relative;z-index:1;flex:1;
+  padding:8px 10px;border-radius:999px;
+  text-align:center;line-height:1.25;
+  color:rgba(252,255,253,.72);
+  transition:color .25s ease;
+}
+.modo strong{display:block;font-size:14px;font-weight:600}
+.modo span{display:block;font-size:11px;opacity:.8;margin-top:1px}
+.modo[aria-selected="true"]{color:var(--pf-azul-700)}
+.modo[aria-selected="true"] span{opacity:.75}
+
+/* ---------- CORPO ---------- */
+.corpo{
+  position:relative;
+  background:var(--pf-creme);
+  border-radius:var(--raio-lg) var(--raio-lg) 0 0;
+  margin-top:-14px;
+  padding-top:4px;
+  min-height:60vh;
+}
+.container{width:100%;max-width:1080px;margin:0 auto;padding:0 16px}
+
+/* destaque do dia */
+.aviso{
+  display:flex;align-items:center;gap:10px;
+  margin:18px 0 0;padding:12px 16px;
+  border-radius:var(--raio-md);
+  background:linear-gradient(100deg,var(--pf-rosa-200) 0%,#fdeef0 100%);
+  border:1px solid rgba(201,136,144,.24);
+  font-size:14px;font-weight:500;color:var(--pf-azul-700);
+}
+.aviso__emoji{font-size:18px;flex:none}
+.aviso__link{
+  margin-left:auto;flex:none;
+  font-size:13px;font-weight:600;color:var(--pf-rosa-600);
+  text-decoration:none;white-space:nowrap;
+}
+.aviso__link:hover{text-decoration:underline}
+
+/* busca */
+.busca{position:relative;margin-top:14px}
+.busca svg{
+  position:absolute;left:14px;top:50%;translate:0 -50%;
+  color:var(--pf-cinza-texto);opacity:.6;pointer-events:none;
+}
+.busca input{
+  width:100%;padding:13px 16px 13px 44px;
+  font:inherit;font-size:15px;color:var(--pf-azul-700);
+  background:var(--pf-azul-100);
+  border:1px solid transparent;border-radius:var(--raio-md);
+  outline:none;transition:border-color .2s,background .2s,box-shadow .2s;
+}
+.busca input::placeholder{color:var(--pf-cinza-texto);opacity:.7}
+.busca input:focus{
+  background:var(--pf-branco);
+  border-color:var(--pf-rosa-400);
+  box-shadow:0 0 0 3px rgba(225,173,177,.28);
+}
+
+/* nav de categorias */
+.nav{
+  position:sticky;top:0;z-index:30;
+  margin-top:14px;
+  background:rgba(251,246,239,.94);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid transparent;
+  transition:border-color .2s,box-shadow .2s;
+}
+.nav--grudada{
+  border-bottom-color:var(--pf-azul-100);
+  box-shadow:0 4px 18px rgba(10,60,95,.06);
+}
+.nav__trilho{
+  display:flex;gap:8px;
+  padding:12px 16px;
+  overflow-x:auto;
+  scrollbar-width:none;
+  -webkit-overflow-scrolling:touch;
+}
+.nav__trilho::-webkit-scrollbar{display:none}
+.nav__item{
+  flex:none;padding:8px 16px;
+  border-radius:999px;
+  font-size:14px;font-weight:500;
+  color:var(--pf-cinza-texto);
+  background:var(--pf-azul-100);
+  white-space:nowrap;
+  transition:background .2s,color .2s;
+}
+.nav__item:hover{background:#cfe0ea}
+.nav__item[aria-current="true"]{background:var(--pf-azul-700);color:var(--pf-branco)}
+
+/* ---------- DESTAQUES ---------- */
+.secao{padding-top:30px}
+
+/* Divisor: fio fino interrompido pelo coração do logotipo.
+   Repete o gesto da marca em vez de separar só com espaço em branco. */
+.divisor{
+  display:flex;align-items:center;gap:14px;
+  margin:38px 0 4px;
+  color:var(--pf-rosa-400);
+}
+.divisor::before,
+.divisor::after{
+  content:'';flex:1;height:1px;
+  background:linear-gradient(90deg,transparent,var(--pf-azul-100) 22%,var(--pf-azul-100) 78%,transparent);
+}
+.divisor svg{flex:none;opacity:.9}
+.secao__cabecalho{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+.secao__titulo{font-size:23px;color:var(--pf-azul-700)}
+.secao__titulo::after{
+  content:'';display:block;width:26px;height:3px;margin-top:6px;
+  border-radius:999px;background:var(--pf-rosa-400);
+}
+.secao__conta{
+  font-size:12px;font-weight:600;color:var(--pf-cinza-texto);
+  background:var(--pf-azul-100);border-radius:999px;padding:3px 9px;
+}
+.secao__dica{margin-left:auto;font-size:12px;color:var(--pf-cinza-texto);opacity:.75}
+
+.vitrine{
+  display:flex;gap:14px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scrollbar-width:none;
+  padding:2px 16px 8px;
+  margin:0 -16px;
+  -webkit-overflow-scrolling:touch;
+}
+.vitrine::-webkit-scrollbar{display:none}
+
+.destaque{
+  position:relative;flex:none;
+  width:min(78vw,320px);
+  scroll-snap-align:start;
+  border-radius:var(--raio-lg);
+  overflow:hidden;
+  background:var(--pf-azul-900);
+  box-shadow:var(--sombra-card);
+  isolation:isolate;
+}
+.destaque__foto{
+  aspect-ratio:16/10;width:100%;object-fit:cover;
+  filter:var(--trato-foto);
+  transition:transform .5s cubic-bezier(.2,.7,.3,1);
+}
+.destaque:hover .destaque__foto{transform:scale(1.05)}
+.destaque__veu{
+  position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(6,40,63,0) 30%,rgba(6,40,63,.88) 100%);
+  pointer-events:none;
+}
+.destaque__info{
+  position:absolute;left:0;right:0;bottom:0;
+  display:flex;align-items:flex-end;gap:10px;
+  padding:16px;
+}
+.destaque__texto{min-width:0}
+.destaque__nome{
+  font-size:18px;color:var(--pf-branco);
+  text-shadow:0 1px 8px rgba(6,40,63,.5);
+}
+.destaque__preco{
+  display:block;margin-top:3px;
+  font-size:15px;font-weight:700;color:var(--pf-rosa-400);
+}
+
+/* ---------- GRID DE PRODUTOS ---------- */
+.grade{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+@media (min-width:640px){.grade{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (min-width:920px){.grade{grid-template-columns:repeat(4,minmax(0,1fr))}}
+
+.card{
+  position:relative;
+  display:flex;flex-direction:column;
+  border-radius:var(--raio-md);
+  overflow:hidden;
+  background:var(--pf-branco);
+  border:1px solid var(--pf-azul-100);
+  box-shadow:var(--sombra-card);
+  transition:transform .28s cubic-bezier(.2,.7,.3,1),box-shadow .28s,border-color .28s;
+}
+@media (hover:hover){
+  .card:hover{transform:translateY(-4px);box-shadow:var(--sombra-card-hover);border-color:var(--pf-rosa-400)}
+  .card:hover .card__foto{transform:scale(1.06)}
+}
+.card__midia{position:relative;aspect-ratio:4/3;overflow:hidden;background:var(--pf-azul-100)}
+.card__foto{
+  width:100%;height:100%;object-fit:cover;
+  filter:var(--trato-foto);
+  transition:transform .5s cubic-bezier(.2,.7,.3,1);
+}
+/* véu quente uniformizando o balanço de branco entre as fotos */
+.card__midia::after{
+  content:'';position:absolute;inset:0;z-index:1;
+  background:linear-gradient(170deg,rgba(255,224,196,.10) 0%,rgba(225,173,177,.07) 100%);
+  mix-blend-mode:soft-light;
+  pointer-events:none;
+}
+
+/* placeholder elegante para item sem foto */
+.card__semfoto{
+  display:flex;align-items:center;justify-content:center;
+  width:100%;height:100%;
+  background:
+    repeating-linear-gradient(135deg,rgba(225,173,177,.12) 0 10px,transparent 10px 20px),
+    linear-gradient(140deg,var(--pf-rosa-200) 0%,var(--pf-azul-100) 100%);
+}
+.card__semfoto svg{opacity:.55}
+
+.selo{
+  position:absolute;left:8px;top:8px;z-index:2;
+  padding:4px 9px;border-radius:999px;
+  font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  background:var(--pf-azul-700);color:var(--pf-branco);
+  box-shadow:0 2px 8px rgba(6,40,63,.3);
+}
+.selo--rosa{background:var(--pf-rosa-400);color:var(--pf-azul-700)}
+
+.favorito{
+  position:absolute;right:8px;top:8px;z-index:4;
+  display:flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(252,255,253,.86);
+  backdrop-filter:blur(6px);
+  box-shadow:0 1px 6px rgba(10,60,95,.16);
+}
+.favorito svg{pointer-events:none}
+
+.card__corpo{display:flex;flex-direction:column;flex:1;gap:4px;padding:12px}
+.card__nome{
+  font-family:var(--fonte-titulo);
+  font-size:15px;font-weight:600;line-height:1.28;letter-spacing:-.01em;
+  color:var(--pf-azul-700);
+  min-height:2.6em;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.card__desc{
+  margin:0;font-size:12px;line-height:1.45;
+  color:var(--pf-cinza-texto);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.card__rodape{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:auto;padding-top:10px}
+.card__preco{
+  font-family:var(--fonte-titulo);
+  font-size:17px;font-weight:600;letter-spacing:-.01em;
+  color:var(--pf-azul-700);white-space:nowrap;
+}
+
+.mais{
+  position:relative;z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  width:36px;height:36px;flex:none;
+  border-radius:50%;
+  background:var(--pf-rosa-400);
+  color:var(--pf-azul-700);
+  font-size:22px;font-weight:700;line-height:0;
+  box-shadow:0 2px 8px rgba(201,136,144,.4);
+  transition:background .2s;
+}
+.mais:hover{background:var(--pf-rosa-600)}
+.mais:focus-visible,.favorito:focus-visible,.nav__item:focus-visible,.modo:focus-visible,.acomp-link:focus-visible,.chip:focus-visible,.passo button:focus-visible{
+  outline:2px solid var(--pf-azul-500);outline-offset:2px;
+}
+
+/* ---------- SELO DE LACTOSE ---------- */
+.lact{
+  display:inline-flex;align-items:center;gap:4px;
+  align-self:flex-start;
+  margin-top:2px;padding:3px 8px 3px 6px;
+  border-radius:999px;
+  font-size:10.5px;font-weight:700;letter-spacing:.01em;
+  background:var(--pf-azul-100);
+  color:var(--pf-cinza-texto);
+  white-space:nowrap;
+}
+.lact--livre{background:#dff3e6;color:#1f6b45}
+.lact svg{flex:none}
+.lact--g{font-size:13px;padding:6px 13px 6px 10px;gap:6px}
+.lact--g svg{width:14px;height:14px}
+
+/* botão invisível que cobre o card e abre a ficha */
+.card__abrir{
+  position:absolute;inset:0;z-index:2;
+  border-radius:var(--raio-md);
+}
+.card__abrir:focus-visible{outline:2px solid var(--pf-azul-500);outline-offset:2px}
+
+/* lupa que insinua que dá pra abrir */
+.lupa{
+  position:absolute;right:8px;bottom:8px;z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(6,40,63,.55);color:var(--pf-branco);
+  backdrop-filter:blur(4px);
+  opacity:0;transform:scale(.85);
+  transition:opacity .22s ease,transform .22s ease;
+}
+@media (hover:hover){.card:hover .lupa{opacity:1;transform:none}}
+@media (hover:none){.lupa{opacity:.9;transform:none}}
+
+/* ---------- FICHA DO PRODUTO ---------- */
+.ficha{
+  position:fixed;inset:0;
+  width:100%;max-width:none;max-height:none;
+  height:100%;margin:0;padding:0;border:0;
+  background:transparent;overflow:visible;
+}
+body.travado{overflow:hidden}
+.ficha::backdrop{background:rgba(6,40,63,.55);backdrop-filter:blur(3px)}
+.ficha[open]{display:flex;align-items:flex-end;justify-content:center}
+@media (min-width:640px){.ficha[open]{align-items:center}}
+
+.ficha__painel{
+  position:relative;
+  display:flex;flex-direction:column;
+  width:100%;max-width:440px;max-height:92vh;
+  background:var(--pf-branco);
+  border-radius:var(--raio-lg) var(--raio-lg) 0 0;
+  box-shadow:0 -8px 50px rgba(6,40,63,.35);
+  overflow:hidden;
+}
+@media (min-width:640px){
+  .ficha__painel{border-radius:var(--raio-lg);max-height:88vh}
+}
+.ficha__puxador{
+  position:absolute;left:50%;top:9px;translate:-50% 0;z-index:3;
+  width:42px;height:4px;border-radius:999px;
+  background:rgba(252,255,253,.7);
+}
+@media (min-width:640px){.ficha__puxador{display:none}}
+
+.ficha__fechar{
+  position:absolute;right:16px;top:16px;z-index:10;
+  display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:50%;
+  background:rgba(6,40,63,.5);color:var(--pf-branco);
+  backdrop-filter:blur(6px);
+}
+.ficha__fechar:focus-visible{outline:2px solid var(--pf-branco);outline-offset:2px}
+
+.ficha__midia{position:relative;flex:none;aspect-ratio:4/3;overflow:hidden;background:var(--pf-azul-100)}
+.ficha__midia img{width:100%;height:100%;object-fit:cover;filter:var(--trato-foto)}
+.ficha__midia .card__semfoto{height:100%}
+.ficha__midia::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(170deg,rgba(255,224,196,.10) 0%,rgba(225,173,177,.07) 100%);
+  mix-blend-mode:soft-light;pointer-events:none;
+}
+
+.ficha__corpo{flex:1;overflow-y:auto;padding:18px 20px 8px;-webkit-overflow-scrolling:touch}
+.ficha__nome{font-size:22px;line-height:1.2;color:var(--pf-azul-700)}
+.ficha__desc{
+  margin:10px 0 0;
+  font-size:14.5px;line-height:1.6;color:var(--pf-cinza-texto);
+}
+
+.ficha__bloco{
+  margin-top:20px;padding:14px 16px;
+  border-radius:var(--raio-md);
+  background:var(--pf-azul-100);
+}
+.ficha__rotulo{
+  font-family:var(--fonte-titulo);
+  font-size:10px;font-weight:500;
+  letter-spacing:var(--tracking-marca);text-transform:uppercase;
+  color:var(--pf-cinza-texto);margin-bottom:10px;
+}
+.ficha__alerg{display:flex;flex-wrap:wrap;gap:6px}
+.ficha__alerg .lact{margin-top:0}
+.marca-alerg{
+  display:inline-flex;align-items:center;
+  padding:5px 11px;border-radius:999px;
+  font-size:12px;font-weight:600;
+  background:var(--pf-branco);color:var(--pf-azul-700);
+  border:1px solid rgba(10,60,95,.14);
+}
+.ficha__nota{
+  margin:12px 0 0;
+  font-size:11.5px;line-height:1.5;color:var(--pf-cinza-texto);opacity:.85;
+}
+
+.ficha__rodape{
+  display:flex;align-items:center;gap:14px;flex:none;
+  padding:14px 20px calc(16px + env(safe-area-inset-bottom,0px));
+  border-top:1px solid var(--pf-azul-100);
+  background:var(--pf-branco);
+}
+.ficha__preco{
+  font-family:var(--fonte-titulo);
+  font-size:22px;font-weight:600;letter-spacing:-.02em;
+  color:var(--pf-azul-700);white-space:nowrap;
+}
+.ficha__add{
+  flex:1;padding:14px 20px;
+  border-radius:999px;
+  background:var(--pf-rosa-400);color:var(--pf-azul-700);
+  font-size:15px;font-weight:700;
+  box-shadow:0 4px 16px rgba(201,136,144,.34);
+  transition:background .2s;
+}
+.ficha__add:hover{background:var(--pf-rosa-600)}
+.ficha__add:focus-visible{outline:2px solid var(--pf-azul-500);outline-offset:2px}
+
+/* coração que sobe ao adicionar */
+.particula{position:fixed;z-index:60;pointer-events:none;translate:-50% -50%}
+
+/* vazio */
+.vazio{
+  padding:48px 16px;text-align:center;color:var(--pf-cinza-texto);
+}
+.vazio strong{display:block;font-family:var(--fonte-titulo);font-size:19px;color:var(--pf-azul-700);margin-bottom:6px}
+
+/* ---------- RODAPÉ ---------- */
+.rodape{
+  position:relative;overflow:hidden;
+  margin-top:44px;padding:32px 0 40px;
+  background:var(--pf-azul-900);color:rgba(252,255,253,.78);
+  font-size:13px;line-height:1.6;
+}
+.rodape__grade{display:grid;gap:26px}
+@media (min-width:640px){.rodape__grade{grid-template-columns:repeat(3,1fr)}}
+.rodape h3{
+  font-family:var(--fonte-titulo);
+  font-size:10px;font-weight:500;
+  letter-spacing:var(--tracking-marca);text-transform:uppercase;
+  color:var(--pf-rosa-400);margin-bottom:12px;
+}
+.rodape p{margin:0 0 4px}
+.rodape a{color:var(--pf-branco);text-decoration:none}
+.rodape a:hover{text-decoration:underline}
+/* Bilhete assinado: Caveat aparece só aqui, no papel de assinatura.
+   Não é tipografia do site — é um gesto, e por isso não briga com o sistema. */
+.bilhete{
+  display:flex;align-items:center;justify-content:center;gap:12px;
+  margin:34px auto 0;padding-top:26px;max-width:460px;
+  border-top:1px solid rgba(252,255,253,.12);
+}
+.bilhete p{
+  margin:0;
+  font-family:'Caveat',cursive;
+  font-size:23px;line-height:1.25;
+  color:var(--pf-rosa-400);
+  transform:rotate(-1.4deg);
+}
+.bilhete svg{flex:none;opacity:.85}
+
+.rodape__fim{
+  margin-top:28px;padding-top:18px;
+  border-top:1px solid rgba(252,255,253,.12);
+  font-size:12px;opacity:.6;
+}
+
+/* ---------- BARRA DO CARRINHO ---------- */
+.carrinho{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));
+  background:var(--pf-azul-700);
+  box-shadow:var(--sombra-flutuante);
+  transform:translateY(110%);
+}
+.carrinho--visivel{transform:none}
+.carrinho__interno{
+  display:flex;align-items:center;gap:14px;
+  width:100%;max-width:1080px;margin:0 auto;
+}
+.carrinho__resumo{min-width:0;color:var(--pf-branco)}
+.carrinho__itens{display:block;font-size:12px;color:var(--pf-rosa-400);font-weight:500}
+.carrinho__total{
+  display:block;font-family:var(--fonte-titulo);
+  font-size:21px;font-weight:600;letter-spacing:-.02em;line-height:1.2;
+}
+.carrinho__cta{
+  display:flex;align-items:center;gap:8px;
+  margin-left:auto;padding:13px 22px;
+  border-radius:999px;
+  background:var(--pf-rosa-400);color:var(--pf-azul-700);
+  font-size:15px;font-weight:700;
+  box-shadow:0 4px 16px rgba(225,173,177,.3);
+  transition:background .2s;
+}
+.carrinho__cta:hover{background:var(--pf-rosa-600)}
+
+/* ---------- ENCOMENDAS ---------- */
+.encomenda-intro{
+  display:flex;gap:14px;align-items:flex-start;
+  margin-top:22px;padding:16px 18px;
+  border-radius:var(--raio-md);
+  background:var(--pf-rosa-200);border:1px solid rgba(201,136,144,.24);
+}
+.encomenda-intro__emoji{font-size:28px;line-height:1}
+.encomenda-intro strong{display:block;font-family:var(--fonte-titulo);font-size:17px}
+.encomenda-intro p{margin:4px 0 0;font-size:13.5px;line-height:1.5;color:var(--pf-cinza-texto)}
+
+/* ---------- SACOLA / CHECKOUT ---------- */
+.folha .ficha__corpo{padding-top:24px}
+.linhas{list-style:none;margin:12px 0 0;padding:0}
+.linha{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--pf-azul-100)}
+.linha__nome{flex:1;min-width:0;font-size:14px;font-weight:600;line-height:1.3}
+.linha__nome small{display:block;margin-top:2px;font-size:12.5px;font-weight:400;color:var(--pf-cinza-texto)}
+.passo{display:flex;align-items:center;gap:2px;padding:3px;border-radius:999px;background:var(--pf-azul-100);flex:none}
+.passo button{width:34px;height:34px;border-radius:50%;background:var(--pf-branco);font-size:18px;font-weight:700;line-height:1}
+.passo span{min-width:24px;text-align:center;font-size:14px;font-weight:700}
+.bloco{margin:22px 0 0;padding:0;border:0;min-width:0}
+.bloco>legend,.bloco>.ficha__rotulo{padding:0;margin-bottom:10px}
+.opcoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opcao{position:relative;cursor:pointer}
+.opcao input{position:absolute;opacity:0;pointer-events:none}
+.opcao>span{
+  display:flex;flex-direction:column;gap:2px;height:100%;
+  padding:12px 14px;border-radius:var(--raio-md);
+  border:1.5px solid var(--pf-azul-100);background:var(--pf-branco);
+  font-size:20px;transition:border-color .2s,background .2s;
+}
+.opcao strong{font-family:var(--fonte-titulo);font-size:15px;font-weight:600}
+.opcao small{font-size:12px;color:var(--pf-cinza-texto)}
+.opcao input:checked+span{border-color:var(--pf-azul-700);background:var(--pf-azul-100)}
+.opcao input:focus-visible+span{outline:2px solid var(--pf-azul-500);outline-offset:2px}
+.campo{display:block;margin-top:12px}
+.campo>span{display:block;margin-bottom:6px;font-size:13px;font-weight:600}
+.campo input,.campo select,.campo textarea{
+  width:100%;padding:12px 14px;
+  font:inherit;font-size:16px;color:var(--pf-azul-700);
+  background:var(--pf-branco);
+  border:1.5px solid var(--pf-azul-100);border-radius:var(--raio-sm);outline:none;
+}
+.campo textarea{resize:vertical;min-height:70px}
+.campo input:focus,.campo select:focus,.campo textarea:focus{border-color:var(--pf-rosa-400);box-shadow:0 0 0 3px rgba(225,173,177,.28)}
+.campo--erro input,.campo--erro select{border-color:var(--pf-erro)}
+.nota{margin:8px 0 0;font-size:12.5px;line-height:1.45;color:var(--pf-cinza-texto)}
+.nota--alerta,.erro{
+  margin:10px 0 0;padding:10px 12px;border-radius:var(--raio-sm);
+  background:var(--pf-erro-fundo);color:var(--pf-erro);font-size:13.5px;font-weight:500;
+}
+.nota--ok{color:#1f6b45;font-weight:600}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips--grade{flex-wrap:wrap;overflow:visible}
+.chip{
+  flex:none;min-height:42px;padding:7px 14px;border-radius:999px;
+  font-size:14px;font-weight:600;line-height:1.15;
+  background:var(--pf-branco);border:1.5px solid var(--pf-azul-100);
+}
+.chip small{display:block;font-size:11px;font-weight:500;opacity:.75}
+.chip[aria-pressed="true"]{background:var(--pf-azul-700);border-color:var(--pf-azul-700);color:var(--pf-branco)}
+.cupom{display:flex;gap:8px}
+.cupom input{flex:1;min-width:0;text-transform:uppercase}
+.botao-sec{
+  flex:none;padding:0 18px;border-radius:var(--raio-sm);
+  font-size:14px;font-weight:700;background:var(--pf-azul-700);color:var(--pf-branco);
+}
+.resumo{
+  display:grid;grid-template-columns:1fr auto;gap:6px 12px;
+  margin:22px 0 8px;padding:14px 16px;
+  border-radius:var(--raio-md);background:var(--pf-azul-100);font-size:14px;
+}
+.resumo dt{color:var(--pf-cinza-texto)}
+.resumo dd{margin:0;text-align:right;font-weight:600}
+.resumo .resumo__total{
+  padding-top:8px;border-top:1px solid rgba(10,60,95,.12);
+  font-family:var(--fonte-titulo);font-size:18px;color:var(--pf-azul-700);
+}
+.resumo .resumo__desconto{color:#1f6b45}
+.folha__rodape{flex-direction:column;align-items:stretch;gap:8px}
+.folha__rodape .erro{margin:0}
+.folha__nota{margin:0;text-align:center;font-size:12px;color:var(--pf-cinza-texto)}
+.ficha__add:disabled{opacity:.55;cursor:not-allowed}
+
+/* ---------- ACOMPANHAMENTO ---------- */
+.etapas{list-style:none;margin:18px 0 0;padding:0}
+.etapa{position:relative;display:flex;align-items:center;gap:12px;padding:8px 0;font-size:15px;color:var(--pf-cinza-texto)}
+.etapa__marca{
+  display:flex;align-items:center;justify-content:center;flex:none;
+  width:26px;height:26px;border-radius:50%;
+  border:2px solid var(--pf-azul-100);background:var(--pf-branco);
+  font-size:13px;font-weight:700;
+}
+.etapa:not(:last-child)::before{
+  content:'';position:absolute;left:12px;top:34px;
+  width:2px;height:calc(100% - 26px);background:var(--pf-azul-100);
+}
+.etapa--feita{color:var(--pf-azul-700)}
+.etapa--feita .etapa__marca{background:var(--pf-azul-700);border-color:var(--pf-azul-700);color:var(--pf-branco)}
+.etapa--feita::before{background:var(--pf-azul-700)!important}
+.etapa--atual{color:var(--pf-azul-700);font-weight:700}
+.etapa--atual .etapa__marca{border-color:var(--pf-rosa-600);background:var(--pf-rosa-200)}
+.etapa--atual .etapa__marca::after{content:'';width:10px;height:10px;border-radius:50%;background:var(--pf-rosa-600)}
+.recentes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+
+/* esconde o que será animado na entrada — só quando o JS confirma que vai animar */
+.anim .hero__marca,.anim .hero__assinatura,
+.anim .status,.anim .modos,.anim .aviso,.anim .busca,
+.anim [data-vitrine],.anim [data-card]{opacity:0}
+</style>
+<script>
+/* Aplica antes da primeira pintura. Se a anime.js não carregar em 2,5s,
+   o estado é revertido e a página aparece normalmente, sem animação. */
+(function(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var raiz = document.documentElement;
+  raiz.classList.add('anim');
+  setTimeout(function(){
+    if (!raiz.dataset.animOk) raiz.classList.remove('anim');
+  }, 2500);
+})();
+</script>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero__brilho" aria-hidden="true"></div>
+
+  <div class="hero__topo">
+    <h1>
+      <img id="marca" class="hero__marca" src="./Petitfour_files/logo-petitfour.png"
+           alt="Petitfour Doceria" width="512" height="512" fetchpriority="high">
+    </h1>
+    <p class="hero__assinatura">Doces artesanais · São Luís</p>
+  </div>
+
+  <div class="status" id="status">
+    <span class="status__ponto" aria-hidden="true"></span>
+    <span id="statusAberto">Carregando…</span>
+    <span class="status__sep" aria-hidden="true">·</span>
+    <span id="statusPrazo">Delivery</span>
+    <span class="status__sep" aria-hidden="true">·</span>
+    <span>Retirada grátis</span>
+  </div>
+
+  <div class="modos" role="tablist" aria-label="Pedir agora ou encomendar">
+    <span class="modos__pilula" id="pilula" aria-hidden="true"></span>
+    <button class="modo" role="tab" aria-selected="true" data-modo="pedido">
+      <strong>🍪 Pedir agora</strong><span>Delivery ou retirada</span>
+    </button>
+    <button class="modo" role="tab" aria-selected="false" data-modo="encomenda">
+      <strong>🎂 Encomendas</strong><span id="modoEncomendaDica">Com 48h de antecedência</span>
+    </button>
+  </div>
+
+  <div><button class="acomp-link" type="button" id="acompLink" hidden>Acompanhar meu pedido →</button></div>
+</header>
+
+<div class="corpo">
+  <div class="container">
+    <div class="aviso" id="aviso" hidden>
+      <span class="aviso__emoji" aria-hidden="true">💗</span>
+      <span>Destaque de hoje: <strong id="avisoNome"></strong></span>
+      <a class="aviso__link" href="#" id="avisoLink">Ver sabor</a>
+    </div>
+
+    <div class="busca">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>
+      </svg>
+      <input id="busca" type="search" placeholder="Buscar cookie, brownie, bolo…" aria-label="Buscar no cardápio" autocomplete="off">
+    </div>
+  </div>
+
+  <nav class="nav" id="nav" aria-label="Categorias">
+    <div class="nav__trilho" id="navTrilho"></div>
+  </nav>
+
+  <div class="container">
+    <section class="secao" id="secaoDestaques">
+      <div class="secao__cabecalho">
+        <h2 class="secao__titulo">Mais pedidos</h2>
+        <span class="secao__dica">arraste para o lado →</span>
+      </div>
+      <div class="vitrine" id="vitrine"></div>
+    </section>
+
+    <div id="secoes"></div>
+
+    <div class="vazio" id="vazio" hidden>
+      <strong>Nada encontrado por aqui</strong>
+      Tente outro sabor — ou limpe a busca para ver o cardápio inteiro.
+    </div>
+  </div>
+
+  <footer class="rodape">
+    <div class="container">
+      <div class="rodape__grade">
+        <div>
+          <h3>Horário</h3>
+          <div id="rodHorario"></div>
+        </div>
+        <div id="rodRetirada" hidden>
+          <h3>Retirada</h3>
+          <p id="rodEndereco"></p>
+        </div>
+        <div>
+          <h3>Fale com a gente</h3>
+          <div id="rodContato"></div>
+        </div>
+      </div>
+      <div class="bilhete">
+        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 21s-7.5-4.7-10.1-9.1C.3 9.1 1.4 5.5 4.7 4.6c2-.5 4 .3 5.3 2.1 1.3-1.8 3.3-2.6 5.3-2.1 3.3.9 4.4 4.5 2.8 7.3C19.5 16.3 12 21 12 21z" fill="#e1adb1"/>
+        </svg>
+        <p>feito com calma, todo dia</p>
+      </div>
+
+      <p class="rodape__fim">Petitfour · Doces artesanais feitos no dia.</p>
+    </div>
+  </footer>
+</div>
+
+<dialog class="ficha" id="ficha" aria-labelledby="fichaNome">
+  <button class="ficha__fechar" type="button" data-fechar aria-label="Fechar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+      <path d="M6 6l12 12M18 6L6 18"/>
+    </svg>
+  </button>
+  <div class="ficha__painel" id="fichaPainel">
+    <span class="ficha__puxador" aria-hidden="true"></span>
+    <div class="ficha__midia" id="fichaMidia"></div>
+    <div class="ficha__corpo">
+      <h2 class="ficha__nome" id="fichaNome"></h2>
+      <p class="ficha__desc" id="fichaDesc"></p>
+
+      <div class="ficha__bloco">
+        <h3 class="ficha__rotulo">Alérgicos</h3>
+        <div class="ficha__alerg" id="fichaAlerg"></div>
+        <p class="ficha__nota">
+          Produzido em cozinha que manipula leite, glúten, ovos e oleaginosas —
+          pode haver traço cruzado. Em caso de alergia, fale com a gente antes de pedir.
+        </p>
+      </div>
+    </div>
+    <div class="ficha__rodape">
+      <span class="ficha__preco" id="fichaPreco"></span>
+      <button class="ficha__add" type="button" id="fichaAdd">
+        Adicionar ao pedido
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<div class="carrinho" id="carrinho" role="region" aria-label="Carrinho">
+  <div class="carrinho__interno">
+    <div class="carrinho__resumo">
+      <span class="carrinho__itens" id="carrinhoItens">0 itens</span>
+      <span class="carrinho__total" id="carrinhoTotal">R$&nbsp;0,00</span>
+    </div>
+    <button class="carrinho__cta" type="button" id="abrirSacola">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6 7h12l1 13H5L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/>
+      </svg>
+      Ver sacola
+    </button>
+  </div>
+</div>
+
+<!-- SACOLA + FINALIZAÇÃO (sem pagamento online) -->
+<dialog class="ficha" id="sacola" aria-labelledby="sacolaTitulo">
+  <button class="ficha__fechar" type="button" data-fechar aria-label="Fechar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <form class="ficha__painel folha" id="formPedido" novalidate>
+    <div class="ficha__corpo">
+      <h2 class="ficha__nome" id="sacolaTitulo">Sua sacola</h2>
+      <ul class="linhas" id="sacolaLinhas"></ul>
+
+      <fieldset class="bloco">
+        <legend class="ficha__rotulo">Como você quer receber?</legend>
+        <div class="opcoes">
+          <label class="opcao"><input type="radio" name="modalidade" value="delivery">
+            <span>🚚<strong>Delivery</strong><small>Taxa conforme o bairro</small></span></label>
+          <label class="opcao"><input type="radio" name="modalidade" value="retirada">
+            <span>🛍️<strong>Retirada</strong><small>Grátis · você escolhe o horário</small></span></label>
+        </div>
+      </fieldset>
+
+      <div class="bloco" id="blocoEntrega" hidden>
+        <label class="campo" id="campoBairro"><span>Bairro</span>
+          <select name="bairro_id" id="bairro"></select></label>
+        <p class="nota nota--alerta" id="semEntrega" hidden>Ainda não entregamos no seu bairro. Você pode escolher <strong>Retirada</strong>.</p>
+        <label class="campo" id="campoEndereco"><span>Endereço completo</span>
+          <input name="endereco" id="endereco" autocomplete="street-address" maxlength="200" placeholder="Rua, número, complemento e referência"></label>
+        <p class="nota nota--alerta" id="lojaFechada" hidden></p>
+      </div>
+
+      <div class="bloco" id="blocoHorario" hidden>
+        <p class="ficha__rotulo" id="rotuloHorario">Quando você retira?</p>
+        <div class="chips" id="datas" role="group" aria-label="Data"></div>
+        <div class="chips chips--grade" id="horas" role="group" aria-label="Horário"></div>
+        <p class="nota" id="notaHorario"></p>
+      </div>
+
+      <div class="bloco">
+        <p class="ficha__rotulo">Seus dados</p>
+        <label class="campo" id="campoNome"><span>Nome</span>
+          <input name="cliente" id="cliente" autocomplete="name" maxlength="80"></label>
+        <label class="campo" id="campoTelefone"><span>WhatsApp / telefone</span>
+          <input name="telefone" id="telefone" type="tel" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="(98) 90000-0000"></label>
+        <label class="campo"><span>Observações <small>(opcional)</small></span>
+          <textarea name="observacoes" id="observacoes" maxlength="500" placeholder="Ex.: sem confeitos, escrever “Parabéns” no bolo…"></textarea></label>
+      </div>
+
+      <div class="bloco">
+        <p class="ficha__rotulo">Cupom de desconto</p>
+        <div class="cupom">
+          <label class="campo" style="margin:0;flex:1"><span class="sr">Código do cupom</span>
+            <input id="cupom" autocomplete="off" maxlength="30" placeholder="Código"></label>
+          <button class="botao-sec" type="button" id="aplicarCupom">Aplicar</button>
+        </div>
+        <p class="nota" id="notaCupom" hidden></p>
+      </div>
+
+      <dl class="resumo" id="resumo"></dl>
+    </div>
+    <div class="ficha__rodape folha__rodape">
+      <p class="erro" id="erroPedido" role="alert" hidden></p>
+      <button class="ficha__add" type="submit" id="enviarPedido">Enviar pedido</button>
+      <p class="folha__nota" id="notaPagamento">Sem pagamento online: você paga na entrega ou na retirada.</p>
+    </div>
+  </form>
+</dialog>
+
+<!-- ACOMPANHAMENTO DO PEDIDO -->
+<dialog class="ficha" id="acompanhar" aria-labelledby="acompTitulo">
+  <button class="ficha__fechar" type="button" data-fechar aria-label="Fechar">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <div class="ficha__painel folha">
+    <div class="ficha__corpo" id="acompCorpo" aria-live="polite"></div>
+  </div>
+</dialog>
+
+<script type="module">
+/* anime.js é enfeite: se o CDN falhar, o site (e o pedido) continuam funcionando. */
+let anime = null;
+try { anime = await import('https://esm.sh/animejs@4.5.0'); } catch {}
+const reduzido = !anime || matchMedia('(prefers-reduced-motion: reduce)').matches;
+const semAnim = (alvo, o = {}) => { o.onUpdate?.(); o.onComplete?.(); };
+const animate = anime ? anime.animate : semAnim;
+const { createTimeline, stagger, onScroll, createSpring, utils } = anime ?? {};
+
+/* ============ API ============ */
+async function api(rota, corpo) {
+  let r;
+  try {
+    r = await fetch(rota, corpo
+      ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(corpo) }
+      : undefined);
+  } catch { throw new Error('Sem conexão com a loja. Verifique sua internet e tente de novo.'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw Object.assign(new Error(j.erro || 'Algo deu errado. Tente de novo.'), { campo: j.campo });
+  return j;
+}
+/* localStorage pode não existir (aba privada, bloqueio) — nunca é essencial. */
+const guardar = {
+  ler(k, padrao) { try { return JSON.parse(localStorage.getItem(k)) ?? padrao; } catch { return padrao; } },
+  gravar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+};
+
+/* ============ DADOS ============ */
+const P = './Petitfour_files/';
+let catalogo;
+try { catalogo = await api('/api/catalogo'); }
+catch {
+  document.documentElement.classList.remove('anim');
+  document.getElementById('secaoDestaques').hidden = true;
+  document.getElementById('secoes').innerHTML = `<div class="vazio"><strong>Cardápio indisponível</strong>
+    Não conseguimos carregar o cardápio agora. Atualize a página em instantes.</div>`;
+  throw new Error('catálogo indisponível');
+}
+
+/* `desc`  = resumo curto, o que o card mostra
+   `longa` = texto integral do cardápio, o que a ficha mostra ao expandir
+   `alerg` = alérgenos. ATENÇÃO: deduzidos dos ingredientes descritos.
+             PRECISAM ser conferidos pela cozinha antes de ir ao ar.
+   Preços chegam em centavos; `preco` (reais) é só para exibir. Quem calcula é o servidor. */
+const produtos = catalogo.produtos.map(p => ({
+  ...p, cat: p.categoria_id, desc: p.descricao, alerg: p.alergenos,
+  preco: p.preco / 100, selorosa: p.selo_rosa, destaque: p.destaque ?? undefined,
+}));
+const porId = new Map(produtos.map(p => [p.id, p]));
+const categorias = catalogo.categorias;
+const loja = catalogo.loja;
+const HORAS_ENCOMENDA = catalogo.regras.antecedencia_encomenda_h;
+
+const rotulosAlerg = {
+  lactose:'Lactose', gluten:'Glúten', ovo:'Ovo', avela:'Avelã',
+};
+const STATUS = {
+  novo:'Pedido enviado', recebido:'Pedido recebido', em_preparacao:'Em preparação',
+  pronto:'Pronto', saiu_para_entrega:'Saiu para entrega', entregue:'Entregue',
+  pronto_retirada:'Pronto para retirada', retirado:'Retirado', cancelado:'Cancelado',
+};
+const DIAS = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+
+const brl = v => 'R$ ' + v.toFixed(2).replace('.', ',');
+const brlc = c => brl(c / 100);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fotoUrl = f => /^https:\/\//.test(f) ? f : P + f;
+const fmtData = d => { const x = new Date(d + 'T12:00:00Z'); return `${DIAS[x.getUTCDay()]} ${d.slice(8,10)}/${d.slice(5,7)}`; };
+const fmtAgenda = iso => `${fmtData(iso.slice(0,10))} às ${iso.slice(11,16)}`;
+
+const svgCoracao = (preenchido, tam=20) =>
+  `<svg width="${tam}" height="${tam}" viewBox="0 0 24 24" aria-hidden="true">
+     <path d="M12 21s-7.5-4.7-10.1-9.1C.3 9.1 1.4 5.5 4.7 4.6c2-.5 4 .3 5.3 2.1 1.3-1.8 3.3-2.6 5.3-2.1 3.3.9 4.4 4.5 2.8 7.3C19.5 16.3 12 21 12 21z"
+       fill="${preenchido ? '#e1adb1' : 'none'}" stroke="#e1adb1" stroke-width="1.8"/>
+   </svg>`;
+
+/* ============ LOJA (status, rodapé) ============ */
+document.getElementById('statusAberto').textContent = loja.aberto ? 'Aberto agora' : 'Fechado agora';
+document.getElementById('status').classList.toggle('status--fechado', !loja.aberto);
+document.getElementById('statusPrazo').textContent = loja.prazo_entrega ? `Entrega ${loja.prazo_entrega}` : 'Delivery';
+document.getElementById('modoEncomendaDica').textContent = `Com ${HORAS_ENCOMENDA}h de antecedência`;
+
+(function rodape(){
+  // agrupa dias seguidos com o mesmo horário, começando na segunda
+  const ordem = [1,2,3,4,5,6,0], grupos = [];
+  for (const d of ordem) {
+    const h = loja.horarios[d], chave = h.aberto ? h.inicio + '–' + h.fim : 'fechado';
+    const ult = grupos.at(-1);
+    if (ult && ult.chave === chave) ult.fim = d; else grupos.push({ chave, ini: d, fim: d });
+  }
+  document.getElementById('rodHorario').innerHTML = grupos.map(g =>
+    `<p>${DIAS[g.ini]}${g.ini !== g.fim ? ' a ' + DIAS[g.fim] : ''}: ${g.chave === 'fechado' ? 'fechado' : g.chave.replace('–', ' às ')}</p>`).join('');
+  if (loja.endereco_retirada) {
+    document.getElementById('rodRetirada').hidden = false;
+    document.getElementById('rodEndereco').textContent = loja.endereco_retirada;
+  }
+  const zap = (loja.whatsapp || '').replace(/\D/g, '');
+  const insta = (loja.instagram || '').replace(/^@/, '');
+  document.getElementById('rodContato').innerHTML =
+    (zap ? `<p><a href="https://wa.me/${zap.length <= 11 ? '55' + zap : zap}" target="_blank" rel="noopener">WhatsApp</a></p>` : '') +
+    (insta ? `<p><a href="https://instagram.com/${esc(insta)}" target="_blank" rel="noopener">@${esc(insta)}</a></p>` : '') +
+    (loja.pagamento ? `<p style="margin-top:8px">${esc(loja.pagamento)}</p>` : '');
+  if (loja.pagamento) document.getElementById('notaPagamento').textContent = `Sem pagamento online · ${loja.pagamento}.`;
+})();
+
+/* ============ RENDER ============ */
+function midia(p){
+  return p.foto
+    ? `<img class="card__foto" src="${esc(fotoUrl(p.foto))}" alt="${esc(p.nome)}" loading="lazy" decoding="async">`
+    : `<div class="card__semfoto">${svgCoracao(false, 40)}</div>`;
+}
+
+/* selo de lactose — sempre presente, nos dois estados.
+   "sem lactose" é informação boa e rara, então ganha destaque verde;
+   "com lactose" é o caso comum, então fica discreto para não virar ruído. */
+function seloLactose(p, grande){
+  const tem = p.alerg.includes('lactose');
+  const cls = 'lact' + (tem ? '' : ' lact--livre') + (grande ? ' lact--g' : '');
+  const icone = tem
+    ? `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 7v6"/><path d="M12 17h.01"/></svg>`
+    : `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>`;
+  return `<span class="${cls}">${icone}${tem ? 'Contém lactose' : 'Sem lactose'}</span>`;
+}
+
+function card(p){
+  return `<article class="card" data-card data-id="${esc(p.id)}">
+    <button class="card__abrir" type="button" data-abrir aria-label="Ver detalhes de ${esc(p.nome)}"></button>
+    <div class="card__midia">
+      ${midia(p)}
+      ${p.selo ? `<span class="selo${p.selorosa ? ' selo--rosa' : ''}">${esc(p.selo)}</span>` : ''}
+      <button class="favorito" type="button" data-fav aria-pressed="false" aria-label="Favoritar ${esc(p.nome)}">
+        ${svgCoracao(false)}
+      </button>
+      <span class="lupa" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5M11 8.5v5M8.5 11h5"/>
+        </svg>
+      </span>
+    </div>
+    <div class="card__corpo">
+      <h3 class="card__nome">${esc(p.nome)}</h3>
+      <p class="card__desc">${esc(p.desc)}</p>
+      ${seloLactose(p)}
+      <div class="card__rodape">
+        <span class="card__preco">${brl(p.preco)}</span>
+        <button class="mais" type="button" data-add aria-label="Adicionar ${esc(p.nome)}">+</button>
+      </div>
+    </div>
+  </article>`;
+}
+
+/* modo = cardápio do dia ("pedido") ou encomendas — cada um com a sua sacola */
+let modo = 'pedido';
+const doModo = (p, m = modo) => m === 'encomenda' ? p.encomenda : p.cardapio;
+
+const secaoDestaques = document.getElementById('secaoDestaques');
+const navTrilho = document.getElementById('navTrilho');
+let itensNav = [];
+
+function renderCatalogo(){
+  const cats = categorias
+    .map(c => ({ ...c, itens: produtos.filter(p => p.cat === c.id && doModo(p)) }))
+    .filter(c => c.itens.length);
+  const destaques = modo === 'pedido'
+    ? produtos.filter(p => p.destaque !== undefined && p.foto && doModo(p)).sort((a,b) => a.destaque - b.destaque)
+    : [];
+
+  // nav
+  navTrilho.innerHTML =
+    (destaques.length ? `<button class="nav__item" data-alvo="secaoDestaques" aria-current="true">Mais pedidos</button>` : '') +
+    cats.map(c => `<button class="nav__item" data-alvo="cat-${esc(c.id)}" aria-current="false">${esc(c.nome)}</button>`).join('');
+  itensNav = [...navTrilho.querySelectorAll('.nav__item')];
+
+  // destaques
+  secaoDestaques.hidden = !destaques.length;
+  document.getElementById('vitrine').innerHTML = destaques
+    .map(p => `<article class="destaque" data-vitrine data-id="${esc(p.id)}">
+        <img class="destaque__foto" src="${esc(fotoUrl(p.foto))}" alt="${esc(p.nome)}" loading="lazy" decoding="async">
+        <div class="destaque__veu"></div>
+        <button class="card__abrir" type="button" data-abrir aria-label="Ver detalhes de ${esc(p.nome)}"></button>
+        <div class="destaque__info">
+          <div class="destaque__texto">
+            <h3 class="destaque__nome">${esc(p.nome)}</h3>
+            <span class="destaque__preco">${brl(p.preco)}</span>
+          </div>
+          <button class="mais" type="button" data-add style="margin-left:auto" aria-label="Adicionar ${esc(p.nome)}">+</button>
+        </div>
+      </article>`).join('');
+
+  // seções
+  const intro = modo === 'encomenda'
+    ? `<div class="encomenda-intro"><span class="encomenda-intro__emoji" aria-hidden="true">🎂</span><div>
+         <strong>Encomendas</strong>
+         <p>Escolha os doces, a quantidade, a data e o horário. Encomendas são feitas com no mínimo ${HORAS_ENCOMENDA} horas de antecedência — por delivery ou retirada.</p>
+       </div></div>` : '';
+  document.getElementById('secoes').innerHTML = intro + cats.map((c, i) => {
+    const divisor = i === 0 ? '' :
+      `<div class="divisor" aria-hidden="true">${svgCoracao(true, 15)}</div>`;
+    return `${divisor}<section class="secao" id="cat-${esc(c.id)}" data-secao>
+      <div class="secao__cabecalho">
+        <h2 class="secao__titulo">${esc(c.nome)}</h2>
+        <span class="secao__conta" data-conta>${c.itens.length}</span>
+      </div>
+      <div class="grade">${c.itens.map(card).join('')}</div>
+    </section>`;
+  }).join('');
+
+  campoBusca.value = '';
+  blocoVazio.hidden = cats.length > 0;
+  if (itensNav[0]) itensNav[0].setAttribute('aria-current', 'true');
+}
+
+/* destaque do dia: o produto marcado com selo rosa no painel */
+const doDia = produtos.find(p => p.selorosa && p.cardapio);
+if (doDia) {
+  document.getElementById('aviso').hidden = false;
+  document.getElementById('avisoNome').textContent = doDia.nome;
+  document.getElementById('avisoLink').addEventListener('click', e => { e.preventDefault(); abrirFicha(doDia.id); });
+}
+
+/* ============ BUSCA ============ */
+const campoBusca = document.getElementById('busca');
+const blocoVazio = document.getElementById('vazio');
+
+campoBusca.addEventListener('input', () => {
+  const termo = campoBusca.value.trim().toLowerCase();
+  const buscando = termo.length > 0;
+  let achou = 0;
+
+  secaoDestaques.hidden = buscando || !document.getElementById('vitrine').children.length;
+
+  document.querySelectorAll('[data-secao]').forEach(secao => {
+    let visiveis = 0;
+    secao.querySelectorAll('[data-card]').forEach(el => {
+      const p = porId.get(el.dataset.id);
+      const bate = !buscando || (p.nome + ' ' + p.desc).toLowerCase().includes(termo);
+      el.hidden = !bate;
+      if (bate) visiveis++;
+    });
+    secao.hidden = visiveis === 0;
+    const divisor = secao.previousElementSibling;
+    if (divisor && divisor.classList.contains('divisor')) divisor.hidden = secao.hidden;
+    secao.querySelector('[data-conta]').textContent = visiveis;
+    achou += visiveis;
+  });
+
+  blocoVazio.hidden = achou > 0;
+});
+
+/* ============ SACOLA ============ */
+const sacolas = {
+  pedido: new Map(guardar.ler('pf_sacola_pedido', [])),
+  encomenda: new Map(guardar.ler('pf_sacola_encomenda', [])),
+};
+// descarta itens que saíram do cardápio desde a última visita
+for (const [m, s] of Object.entries(sacolas))
+  for (const [id, q] of s) { const p = porId.get(id); if (!p || !doModo(p, m) || !Number.isInteger(q) || q < 1) s.delete(id); }
+
+const sacola = () => sacolas[modo];
+function salvarSacola(){ guardar.gravar('pf_sacola_' + modo, [...sacola()]); }
+function mudarQtd(id, delta){
+  const s = sacola(), n = Math.min(99, (s.get(id) || 0) + delta);
+  if (n <= 0) s.delete(id); else s.set(id, n);
+  salvarSacola();
+  atualizarBarra();
+}
+function contarSacola(){
+  let itens = 0, total = 0;
+  for (const [id, q] of sacola()) { itens += q; total += porId.get(id).preco * q; }
+  return { itens, total };
+}
+
+const barra = document.getElementById('carrinho');
+const rotuloItens = document.getElementById('carrinhoItens');
+const rotuloTotal = document.getElementById('carrinhoTotal');
+let totalMostrado = 0;
+
+function abrirBarra(){
+  if (barra.classList.contains('carrinho--visivel')) return;
+  barra.classList.add('carrinho--visivel');
+  animate(barra, {
+    translateY: ['110%','0%'],
+    duration: reduzido ? 0 : 520,
+    ease: reduzido ? undefined : createSpring({ stiffness: 140, damping: 16 }),
+  });
+}
+function fecharBarra(){
+  if (!barra.classList.contains('carrinho--visivel')) return;
+  barra.classList.remove('carrinho--visivel');
+  barra.style.transform = '';
+}
+
+function atualizarBarra(){
+  const { itens, total } = contarSacola();
+  rotuloItens.textContent = (itens === 1 ? '1 item' : itens + ' itens') + (modo === 'encomenda' ? ' · encomenda' : '');
+  if (!itens){ fecharBarra(); totalMostrado = 0; rotuloTotal.textContent = brl(0); return; }
+  abrirBarra();
+
+  if (reduzido){ totalMostrado = total; rotuloTotal.textContent = brl(total); return; }
+
+  // contador animado do total
+  const de = { v: totalMostrado };
+  animate(de, {
+    v: total,
+    duration: 420,
+    ease: 'outQuad',
+    onUpdate: () => { rotuloTotal.textContent = brl(de.v); },
+    onComplete: () => { totalMostrado = total; rotuloTotal.textContent = brl(total); },
+  });
+
+  animate(rotuloTotal, {
+    scale: [1, 1.12, 1],
+    duration: 420,
+    ease: 'outQuad',
+  });
+}
+
+function soltarCoracao(x, y){
+  if (reduzido) return;
+  const no = document.createElement('div');
+  no.className = 'particula';
+  no.innerHTML = svgCoracao(true, 22);
+  no.style.left = x + 'px';
+  no.style.top = y + 'px';
+  document.body.appendChild(no);
+
+  animate(no, {
+    translateY: -70,
+    scale: [{ to: 1.4, duration: 180 }, { to: .5, duration: 500 }],
+    opacity: [{ to: 1, duration: 100 }, { to: 0, duration: 480 }],
+    rotate: utils.random(-24, 24),
+    duration: 680,
+    ease: 'outQuad',
+    onComplete: () => no.remove(),
+  });
+}
+
+/* ============ DIÁLOGOS (ficha, sacola, acompanhamento) ============ */
+function abrirDialogo(dlg){
+  dlg.showModal();
+  document.body.classList.add('travado');
+  if (reduzido) return;
+  animate(dlg.querySelector('.ficha__painel'), {
+    translateY:['100%','0%'],
+    duration:520,
+    ease: createSpring({ stiffness:150, damping:19 }),
+  });
+}
+function fecharDialogo(dlg, depois){
+  if (!dlg.open) return;
+  const encerrar = () => {
+    dlg.close();
+    if (!document.querySelector('dialog[open]')) document.body.classList.remove('travado');
+    depois?.();
+  };
+  if (reduzido) return encerrar();
+  animate(dlg.querySelector('.ficha__painel'), { translateY:'100%', duration:300, ease:'inQuad', onComplete: encerrar });
+}
+document.querySelectorAll('dialog.ficha').forEach(dlg => {
+  // clique no fundo escuro fecha
+  dlg.addEventListener('click', e => { if (e.target === dlg) fecharDialogo(dlg); });
+  // Esc: o <dialog> fecha sozinho, mas queremos a animação de saída
+  dlg.addEventListener('cancel', e => { e.preventDefault(); fecharDialogo(dlg); });
+});
+
+/* ============ FICHA DO PRODUTO ============ */
+const ficha = document.getElementById('ficha');
+const fichaPainel = document.getElementById('fichaPainel');
+const fichaAdd = document.getElementById('fichaAdd');
+let produtoAberto = null;
+
+function abrirFicha(id){
+  const p = porId.get(id);
+  if (!p) return;
+  produtoAberto = p;
+
+  document.getElementById('fichaMidia').innerHTML = p.foto
+    ? `<img src="${esc(fotoUrl(p.foto))}" alt="${esc(p.nome)}">`
+    : `<div class="card__semfoto">${svgCoracao(false, 56)}</div>`;
+  document.getElementById('fichaNome').textContent = p.nome;
+  document.getElementById('fichaDesc').textContent = p.longa;
+  document.getElementById('fichaPreco').textContent = brl(p.preco);
+  fichaAdd.textContent = modo === 'encomenda' ? 'Adicionar à encomenda' : 'Adicionar ao pedido';
+
+  // lactose sempre primeiro e em destaque; os demais alérgenos em seguida
+  const outros = p.alerg.filter(a => a !== 'lactose');
+  document.getElementById('fichaAlerg').innerHTML =
+    seloLactose(p, true) +
+    (outros.length
+      ? outros.map(a => `<span class="marca-alerg">${rotulosAlerg[a]}</span>`).join('')
+      : '');
+
+  abrirDialogo(ficha);
+  if (!reduzido){
+    animate(fichaPainel.querySelectorAll('.ficha__nome,.ficha__desc,.ficha__bloco'), {
+      translateY:[12,0], opacity:[0,1],
+      delay: stagger(60, { start:120 }),
+      duration:480, ease:'outQuad',
+    });
+  }
+}
+
+fichaAdd.addEventListener('click', () => {
+  if (!produtoAberto) return;
+  if (!doModo(produtoAberto)) trocarModo(produtoAberto.cardapio ? 'pedido' : 'encomenda');
+  const r = fichaAdd.getBoundingClientRect();
+  soltarCoracao(r.left + r.width / 2, r.top + r.height / 2);
+  mudarQtd(produtoAberto.id, 1);
+  fecharDialogo(ficha, () => { produtoAberto = null; });
+});
+
+/* ============ FINALIZAÇÃO ============ */
+const dlgSacola = document.getElementById('sacola');
+const form = document.getElementById('formPedido');
+const $ = id => document.getElementById(id);
+const pedido = { modalidade: null, bairro_id: '', data: null, hora: null, cupom: '' };
+let agendaAtual = [], cotacaoAtual = null, lojaAbertaAgora = loja.aberto, seqCotacao = 0;
+
+// dados do cliente ficam no aparelho para o próximo pedido
+const dadosSalvos = guardar.ler('pf_cliente', {});
+for (const k of ['cliente', 'telefone', 'endereco']) if (dadosSalvos[k]) $(k).value = dadosSalvos[k];
+if (dadosSalvos.bairro_id) pedido.bairro_id = String(dadosSalvos.bairro_id);
+
+$('bairro').innerHTML = `<option value="">Selecione o bairro</option>` +
+  catalogo.bairros.map(b => `<option value="${b.id}">${esc(b.nome)} — ${brlc(b.taxa)}</option>`).join('') +
+  `<option value="fora">Meu bairro não está na lista</option>`;
+if (!catalogo.bairros.some(b => String(b.id) === pedido.bairro_id)) pedido.bairro_id = '';
+$('bairro').value = pedido.bairro_id;
+
+const precisaHorario = () => modo === 'encomenda' || pedido.modalidade === 'retirada';
+
+async function abrirSacola(){
+  $('sacolaTitulo').textContent = modo === 'encomenda' ? 'Sua encomenda' : 'Sua sacola';
+  $('erroPedido').hidden = true;
+  renderLinhas();
+  renderModalidade();
+  abrirDialogo(dlgSacola);
+  if (precisaHorario()) await carregarAgenda();
+  cotar();
+}
+
+function renderLinhas(){
+  const linhas = [...sacola()].map(([id, q]) => {
+    const p = porId.get(id);
+    return `<li class="linha">
+      <div class="linha__nome">${esc(p.nome)}<small>${brl(p.preco)} cada · ${brl(p.preco * q)}</small></div>
+      <div class="passo" data-id="${esc(id)}">
+        <button type="button" data-qtd="-1" aria-label="${q === 1 ? 'Remover' : 'Diminuir'} ${esc(p.nome)}">${q === 1 ? '×' : '−'}</button>
+        <span aria-live="polite">${q}</span>
+        <button type="button" data-qtd="1" aria-label="Aumentar ${esc(p.nome)}">+</button>
+      </div>
+    </li>`;
+  });
+  $('sacolaLinhas').innerHTML = linhas.join('') ||
+    `<li class="nota">Sua sacola está vazia. Feche e escolha seus doces 💗</li>`;
+}
+
+function renderModalidade(){
+  form.querySelectorAll('input[name=modalidade]').forEach(r => r.checked = r.value === pedido.modalidade);
+  const delivery = pedido.modalidade === 'delivery';
+  $('blocoEntrega').hidden = !delivery;
+  $('blocoHorario').hidden = !precisaHorario() || !pedido.modalidade;
+  $('rotuloHorario').textContent = delivery ? 'Quando entregamos?' : 'Quando você retira?';
+  $('semEntrega').hidden = $('bairro').value !== 'fora';
+  const fechado = delivery && modo === 'pedido' && !lojaAbertaAgora;
+  $('lojaFechada').hidden = !fechado;
+  $('lojaFechada').textContent = 'Estamos fechados agora — o delivery volta no nosso horário de funcionamento. Você pode agendar uma retirada ou fazer uma encomenda.';
+}
+
+async function carregarAgenda(){
+  $('notaHorario').textContent = 'Carregando horários…';
+  try {
+    agendaAtual = (await api('/api/agenda?tipo=' + modo)).dias;
+  } catch (e) { agendaAtual = []; $('notaHorario').textContent = e.message; return; }
+  if (!agendaAtual.some(d => d.data === pedido.data)) { pedido.data = agendaAtual[0]?.data ?? null; pedido.hora = null; }
+  renderAgenda();
+}
+
+function renderAgenda(){
+  const dia = agendaAtual.find(d => d.data === pedido.data);
+  if (dia && !dia.horarios.includes(pedido.hora)) pedido.hora = null;
+  $('datas').innerHTML = agendaAtual.map(d =>
+    `<button class="chip" type="button" data-data="${d.data}" aria-pressed="${d.data === pedido.data}">
+       ${fmtData(d.data).split(' ')[0]}<small>${fmtData(d.data).split(' ')[1]}</small></button>`).join('');
+  $('horas').innerHTML = dia ? dia.horarios.map(h =>
+    `<button class="chip" type="button" data-hora="${h}" aria-pressed="${h === pedido.hora}">${h}</button>`).join('') : '';
+  $('notaHorario').textContent = !agendaAtual.length
+    ? 'Não há horários disponíveis nos próximos dias. Fale com a gente pelo WhatsApp.'
+    : modo === 'encomenda'
+      ? `Encomendas: no mínimo ${HORAS_ENCOMENDA}h de antecedência. Só mostramos horários possíveis.`
+      : 'Só mostramos horários com disponibilidade.';
+}
+
+/* Resumo: sempre calculado pelo servidor. */
+async function cotar(){
+  const minha = ++seqCotacao;
+  const itens = [...sacola()].map(([id, qtd]) => ({ id, qtd }));
+  $('enviarPedido').textContent = modo === 'encomenda' ? 'Enviar encomenda' : 'Enviar pedido';
+  if (!itens.length){ $('resumo').innerHTML = ''; cotacaoAtual = null; atualizarBotao(); return; }
+  try {
+    const c = await api('/api/cotacao', {
+      tipo: modo, modalidade: pedido.modalidade || 'retirada', itens, cupom: pedido.cupom,
+      bairro_id: pedido.modalidade === 'delivery' && /^\d+$/.test(pedido.bairro_id) ? pedido.bairro_id : null,
+    });
+    if (minha !== seqCotacao) return;
+    cotacaoAtual = c;
+    lojaAbertaAgora = c.aberto;
+    const nota = $('notaCupom');
+    if (c.erroCupom){ nota.hidden = false; nota.className = 'nota nota--alerta'; nota.textContent = c.erroCupom; pedido.cupom = ''; }
+    else if (c.cupom){ nota.hidden = false; nota.className = 'nota nota--ok'; nota.textContent = `Cupom ${c.cupom.codigo} aplicado ✓`; }
+    const entrega = pedido.modalidade === 'delivery'
+      ? (c.bairro ? brlc(c.taxa) : 'selecione o bairro') : pedido.modalidade === 'retirada' ? 'grátis' : '—';
+    $('resumo').innerHTML = `
+      <dt>Produtos</dt><dd>${brlc(c.subtotal)}</dd>
+      <dt>Entrega</dt><dd>${entrega}</dd>
+      ${c.desconto ? `<dt class="resumo__desconto">Desconto</dt><dd class="resumo__desconto">− ${brlc(c.desconto)}</dd>` : ''}
+      <dt class="resumo__total">Total</dt><dd class="resumo__total">${brlc(c.total)}</dd>`;
+    $('erroPedido').hidden = true;
+    renderModalidade();
+  } catch (e) {
+    if (minha !== seqCotacao) return;
+    cotacaoAtual = null;
+    mostrarErro(e.message);
+  }
+  atualizarBotao();
+}
+
+function atualizarBotao(){
+  const fechado = pedido.modalidade === 'delivery' && modo === 'pedido' && !lojaAbertaAgora;
+  $('enviarPedido').disabled = !cotacaoAtual || !sacola().size || fechado || $('bairro').value === 'fora' && pedido.modalidade === 'delivery';
+}
+
+function mostrarErro(msg, campo){
+  $('erroPedido').textContent = msg;
+  $('erroPedido').hidden = false;
+  const alvo = { bairro:'campoBairro', 'endereço':'campoEndereco', nome:'campoNome', telefone:'campoTelefone' }[campo];
+  if (alvo) $(alvo).classList.add('campo--erro');
+  if (campo === 'horario') $('blocoHorario').scrollIntoView({ block:'center', behavior: reduzido ? 'auto' : 'smooth' });
+}
+
+form.addEventListener('change', e => {
+  if (e.target.name === 'modalidade'){
+    pedido.modalidade = e.target.value;
+    renderModalidade();
+    if (precisaHorario()) carregarAgenda();
+    cotar();
+  }
+  if (e.target.id === 'bairro'){
+    pedido.bairro_id = e.target.value;
+    $('campoBairro').classList.remove('campo--erro');
+    renderModalidade();
+    cotar();
+  }
+});
+form.addEventListener('input', e => e.target.closest('.campo')?.classList.remove('campo--erro'));
+form.addEventListener('click', e => {
+  const passo = e.target.closest('[data-qtd]');
+  if (passo){
+    mudarQtd(passo.parentElement.dataset.id, Number(passo.dataset.qtd));
+    renderLinhas(); cotar();
+    return;
+  }
+  const d = e.target.closest('[data-data]');
+  if (d){ pedido.data = d.dataset.data; pedido.hora = null; renderAgenda(); return; }
+  const h = e.target.closest('[data-hora]');
+  if (h){ pedido.hora = h.dataset.hora; renderAgenda(); $('erroPedido').hidden = true; }
+});
+$('aplicarCupom').addEventListener('click', () => {
+  pedido.cupom = $('cupom').value.trim();
+  if (!pedido.cupom) { $('notaCupom').hidden = true; }
+  cotar();
+});
+$('cupom').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); $('aplicarCupom').click(); } });
+
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const v = id => $(id).value.trim();
+  // conferência rápida no aparelho; a validação que vale é a do servidor
+  if (!pedido.modalidade) return mostrarErro('Escolha delivery ou retirada.');
+  if (pedido.modalidade === 'delivery' && !/^\d+$/.test(pedido.bairro_id)) return mostrarErro('Selecione o bairro de entrega.', 'bairro');
+  if (pedido.modalidade === 'delivery' && v('endereco').length < 5) return mostrarErro('Informe o endereço completo.', 'endereço');
+  if (precisaHorario() && (!pedido.data || !pedido.hora)) return mostrarErro('Escolha a data e o horário.', 'horario');
+  if (v('cliente').length < 2) return mostrarErro('Informe seu nome.', 'nome');
+  if (v('telefone').replace(/\D/g, '').length < 10) return mostrarErro('Informe um telefone com DDD.', 'telefone');
+
+  const botao = $('enviarPedido');
+  botao.disabled = true; botao.textContent = 'Enviando…';
+  try {
+    const r = await api('/api/pedidos', {
+      tipo: modo, modalidade: pedido.modalidade,
+      itens: [...sacola()].map(([id, qtd]) => ({ id, qtd })),
+      bairro_id: pedido.modalidade === 'delivery' ? pedido.bairro_id : null,
+      endereco: v('endereco'), cliente: v('cliente'), telefone: v('telefone'),
+      observacoes: v('observacoes'), cupom: pedido.cupom,
+      agendado_para: precisaHorario() ? `${pedido.data}T${pedido.hora}` : null,
+    });
+    guardar.gravar('pf_cliente', { cliente: v('cliente'), telefone: v('telefone'), endereco: v('endereco'), bairro_id: pedido.bairro_id });
+    const meus = guardar.ler('pf_pedidos', []).filter(x => x.codigo !== r.codigo);
+    guardar.gravar('pf_pedidos', [{ codigo: r.codigo, id: r.id }, ...meus].slice(0, 10));
+    sacola().clear(); salvarSacola(); atualizarBarra();
+    $('observacoes').value = ''; $('cupom').value = ''; $('notaCupom').hidden = true;
+    Object.assign(pedido, { cupom: '', data: null, hora: null });
+    fecharDialogo(dlgSacola, () => abrirAcompanhamento(r.codigo));
+  } catch (err) {
+    mostrarErro(err.message, err.campo);
+    if (err.campo === 'horario' && precisaHorario()) carregarAgenda();
+    if (err.campo === 'itens') location.reload();
+  } finally {
+    botao.textContent = modo === 'encomenda' ? 'Enviar encomenda' : 'Enviar pedido';
+    atualizarBotao();
+  }
+});
+
+$('abrirSacola').addEventListener('click', abrirSacola);
+
+/* ============ ACOMPANHAMENTO ============ */
+const dlgAcomp = document.getElementById('acompanhar');
+let timerAcomp = null, codigoAberto = null;
+
+function renderAcompanhamento(p){
+  const cancelado = p.status === 'cancelado';
+  const atual = p.fluxo.indexOf(p.status);
+  const etapas = p.fluxo.map((s, i) => {
+    const cls = cancelado ? '' : i < atual || (i === atual && i === p.fluxo.length - 1) ? 'etapa--feita' : i === atual ? 'etapa--atual' : '';
+    const marca = cls === 'etapa--feita' ? '✓' : '';
+    return `<li class="etapa ${cls}"><span class="etapa__marca" aria-hidden="true">${marca}</span>${STATUS[s]}</li>`;
+  }).join('');
+  const quando = p.agendado_para
+    ? `${p.modalidade === 'delivery' ? 'Entrega' : 'Retirada'}: ${fmtAgenda(p.agendado_para)}`
+    : `Delivery${p.bairro_nome ? ' · ' + esc(p.bairro_nome) : ''}${loja.prazo_entrega ? ' · ' + esc(loja.prazo_entrega) : ''}`;
+  const outros = guardar.ler('pf_pedidos', []).filter(x => x.codigo !== p.codigo);
+  $('acompCorpo').innerHTML = `
+    <p class="ficha__rotulo">${p.tipo === 'encomenda' ? 'Encomenda' : 'Pedido'} #${String(p.id).padStart(4, '0')}</p>
+    <h2 class="ficha__nome" id="acompTitulo">${cancelado ? 'Pedido cancelado' : STATUS[p.status]}</h2>
+    <p class="ficha__desc">${quando}</p>
+    ${cancelado ? `<p class="nota nota--alerta">Este pedido foi cancelado. Em caso de dúvida, fale com a gente.</p>` : `<ol class="etapas">${etapas}</ol>`}
+    <div class="ficha__bloco">
+      <h3 class="ficha__rotulo">Resumo</h3>
+      ${p.itens.map(i => `<p class="nota" style="margin:4px 0">${i.qtd}× ${esc(i.nome)} — ${brlc(i.subtotal)}</p>`).join('')}
+      <dl class="resumo" style="margin:12px 0 0;background:var(--pf-branco)">
+        <dt>Produtos</dt><dd>${brlc(p.subtotal)}</dd>
+        <dt>Entrega</dt><dd>${p.modalidade === 'delivery' ? brlc(p.taxa) : 'grátis'}</dd>
+        ${p.desconto ? `<dt class="resumo__desconto">Desconto${p.cupom_codigo ? ' (' + esc(p.cupom_codigo) + ')' : ''}</dt><dd class="resumo__desconto">− ${brlc(p.desconto)}</dd>` : ''}
+        <dt class="resumo__total">Total</dt><dd class="resumo__total">${brlc(p.total)}</dd>
+      </dl>
+      ${p.observacoes ? `<p class="nota">Obs.: ${esc(p.observacoes)}</p>` : ''}
+    </div>
+    <p class="nota" style="text-align:center;margin:14px 0 6px">Esta tela se atualiza sozinha. Pagamento na entrega ou na retirada.</p>
+    ${outros.length ? `<div class="recentes">${outros.map(o =>
+      `<button class="chip" type="button" data-pedido="${esc(o.codigo)}">Pedido #${String(o.id).padStart(4, '0')}</button>`).join('')}</div>` : ''}`;
+}
+
+async function carregarAcompanhamento(){
+  if (!codigoAberto) return;
+  try { renderAcompanhamento(await api('/api/pedidos/' + encodeURIComponent(codigoAberto))); }
+  catch (e) { $('acompCorpo').innerHTML = `<h2 class="ficha__nome" id="acompTitulo">Pedido</h2><p class="nota nota--alerta">${esc(e.message)}</p>`; }
+}
+
+async function abrirAcompanhamento(codigo){
+  codigoAberto = codigo;
+  history.replaceState(null, '', '#pedido=' + codigo);
+  mostrarLinkAcomp();
+  await carregarAcompanhamento();
+  if (!dlgAcomp.open) abrirDialogo(dlgAcomp);
+  clearInterval(timerAcomp);
+  timerAcomp = setInterval(carregarAcompanhamento, 20000);
+}
+dlgAcomp.addEventListener('close', () => {
+  clearInterval(timerAcomp);
+  codigoAberto = null;
+  history.replaceState(null, '', location.pathname + location.search);
+});
+dlgAcomp.addEventListener('click', e => {
+  const b = e.target.closest('[data-pedido]');
+  if (b) { codigoAberto = b.dataset.pedido; history.replaceState(null, '', '#pedido=' + codigoAberto); carregarAcompanhamento(); }
+});
+
+function mostrarLinkAcomp(){
+  const meus = guardar.ler('pf_pedidos', []);
+  $('acompLink').hidden = !meus.length;
+}
+$('acompLink').addEventListener('click', () => {
+  const [ultimo] = guardar.ler('pf_pedidos', []);
+  if (ultimo) abrirAcompanhamento(ultimo.codigo);
+});
+mostrarLinkAcomp();
+
+/* ============ INTERAÇÕES ============ */
+document.addEventListener('click', e => {
+  const fechar = e.target.closest('[data-fechar]');
+  if (fechar){ fecharDialogo(fechar.closest('dialog')); return; }
+
+  const botaoAbrir = e.target.closest('[data-abrir]');
+  if (botaoAbrir){
+    const alvo = botaoAbrir.closest('[data-id]');
+    if (alvo) abrirFicha(alvo.dataset.id);
+    return;
+  }
+
+  const botaoAdd = e.target.closest('[data-add]');
+  if (botaoAdd){
+    const r = botaoAdd.getBoundingClientRect();
+    soltarCoracao(r.left + r.width / 2, r.top + r.height / 2);
+    mudarQtd(botaoAdd.closest('[data-id]').dataset.id, 1);
+    if (!reduzido){
+      animate(botaoAdd, {
+        scale: [1, .82, 1],
+        duration: 380,
+        ease: createSpring({ stiffness: 320, damping: 12 }),
+      });
+    }
+    return;
+  }
+
+  const botaoFav = e.target.closest('[data-fav]');
+  if (botaoFav){
+    const ativo = botaoFav.getAttribute('aria-pressed') === 'true';
+    botaoFav.setAttribute('aria-pressed', String(!ativo));
+    botaoFav.querySelector('path').setAttribute('fill', ativo ? 'none' : '#e1adb1');
+    if (!reduzido){
+      animate(botaoFav.querySelector('svg'), {
+        scale: [1, ativo ? .85 : 1.35, 1],
+        duration: 520,
+        ease: createSpring({ stiffness: 260, damping: 10 }),
+      });
+    }
+  }
+});
+
+/* seletor de modo — pílula deslizante */
+const pilula = document.getElementById('pilula');
+function trocarModo(novo){
+  if (novo === modo) return;
+  modo = novo;
+  document.querySelectorAll('.modo').forEach(b => b.setAttribute('aria-selected', String(b.dataset.modo === modo)));
+  animate(pilula, {
+    translateX: modo === 'pedido' ? '0px' : 'calc(100% + 4px)',
+    duration: reduzido ? 0 : 420,
+    ease: reduzido ? undefined : createSpring({ stiffness: 190, damping: 20 }),
+  });
+  document.documentElement.classList.remove('anim');   // re-render não repete a entrada
+  pedido.data = pedido.hora = null;
+  renderCatalogo();
+  totalMostrado = 0;
+  atualizarBarra();
+  marcarSecaoAtiva();
+}
+document.querySelectorAll('.modo').forEach(btn => btn.addEventListener('click', () => trocarModo(btn.dataset.modo)));
+
+/* nav: rolagem suave + seção ativa */
+navTrilho.addEventListener('click', e => {
+  const item = e.target.closest('.nav__item');
+  if (!item) return;
+  const alvo = document.getElementById(item.dataset.alvo);
+  if (!alvo) return;
+  const topo = alvo.getBoundingClientRect().top + scrollY - 76;
+  scrollTo({ top: topo, behavior: reduzido ? 'auto' : 'smooth' });
+});
+
+const nav = document.getElementById('nav');
+
+function marcarSecaoAtiva(){
+  nav.classList.toggle('nav--grudada', nav.getBoundingClientRect().top <= 1);
+
+  const alvos = itensNav.map(b => b.dataset.alvo);
+  let ativo = alvos[0];
+  for (const id of alvos){
+    const el = document.getElementById(id);
+    if (el && !el.hidden && el.getBoundingClientRect().top <= 140) ativo = id;
+  }
+  itensNav.forEach(b => {
+    const ligado = b.dataset.alvo === ativo;
+    if ((b.getAttribute('aria-current') === 'true') !== ligado)
+      b.setAttribute('aria-current', String(ligado));
+  });
+}
+
+renderCatalogo();
+atualizarBarra();
+addEventListener('scroll', marcarSecaoAtiva, { passive:true });
+marcarSecaoAtiva();
+
+function abrirDoLink(){
+  const m = location.hash.match(/^#pedido=([\w-]+)$/);
+  if (m && m[1] !== codigoAberto) abrirAcompanhamento(m[1]);
+}
+addEventListener('hashchange', abrirDoLink);
+abrirDoLink();
+
+/* ============ ANIMAÇÕES DE ENTRADA ============ */
+if (!reduzido){
+  // confirma para o script de <head> que a biblioteca carregou
+  document.documentElement.dataset.animOk = '1';
+
+  // entrada da marca: o selo assenta e dá uma respirada
+  createTimeline()
+    .add('#marca', { scale:[.82,1], opacity:[0,1], duration:760, ease:'outBack' })
+    .add('#marca', { scale:[1,1.035,1], duration:620, ease:'inOutQuad' }, '-=120');
+
+  // header
+  createTimeline({ defaults:{ ease:'outQuad', duration:620 } })
+    .add('.hero__assinatura',  { translateY:[10,0], opacity:[0,1] }, 300)
+    .add('.status',            { translateY:[10,0], opacity:[0,1] }, '-=460')
+    .add('.modos',             { translateY:[12,0], opacity:[0,1] }, '-=480')
+    .add('.aviso',             { translateY:[12,0], opacity:[0,1] }, '-=440')
+    .add('.busca',             { translateY:[12,0], opacity:[0,1] }, '-=500');
+
+  // pulso suave no indicador de "aberto agora"
+  if (loja.aberto) animate(document.querySelector('.status__ponto'), {
+    boxShadow:['0 0 0 0 rgba(90,209,154,.55)','0 0 0 9px rgba(90,209,154,0)'],
+    duration:2200, loop:true, ease:'outQuad',
+  });
+
+  // vitrine de destaques
+  animate('[data-vitrine]', {
+    translateX:[28,0], opacity:[0,1],
+    delay: stagger(90, { start:420 }),
+    duration:700, ease:'outQuad',
+  });
+
+  // cards entram em stagger, por seção, quando a seção aparece
+  document.querySelectorAll('[data-secao]').forEach(secao => {
+    animate(secao.querySelectorAll('[data-card]'), {
+      translateY:[22,0],
+      opacity:[0,1],
+      scale:[.97,1],
+      delay: stagger(55),
+      duration:620,
+      ease:'outQuad',
+      autoplay: onScroll({ target: secao, enter:'bottom-=40 top', repeat:false }),
+    });
+  });
+} else {
+  document.documentElement.classList.remove('anim');
+}
+</script>
+</body>
+</html>
