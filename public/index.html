@@ -1027,6 +1027,44 @@ const guardar = {
   gravar(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
 };
 
+/* ============ MÉTRICAS DE USO ============
+   Anônimo: ids aleatórios (visitante no aparelho, sessão na aba), sem dados pessoais.
+   Os eventos vão em lote com sendBeacon, sem atrasar nada na tela. */
+const rastro = (() => {
+  const novoId = () => (crypto.randomUUID?.() ?? Math.random().toString(36).slice(2) + Date.now().toString(36)).replace(/[^\w-]/g, '');
+  const sessaoGuardada = (() => { try { return JSON.parse(sessionStorage.getItem('pf_sessao')); } catch { return null; } })();
+  const q = new URLSearchParams(location.search);
+  const ref = (() => { try { const h = new URL(document.referrer).hostname.replace(/^www\./, ''); return h && h !== location.hostname ? h : null; } catch { return null; } })();
+  const origemAgora = (q.get('origem') || q.get('utm_source') || ref || '').toLowerCase().slice(0, 60);
+  const s = sessaoGuardada ?? { sessao: novoId(), origem: origemAgora || 'direto', nova: true };
+  if (!sessaoGuardada) try { sessionStorage.setItem('pf_sessao', JSON.stringify({ ...s, nova: false })); } catch {}
+  let visitante = guardar.ler('pf_visitante', null);
+  if (!visitante) { visitante = novoId(); guardar.gravar('pf_visitante', visitante); }
+  // a primeira origem do cliente é a que leva o crédito pelo pedido
+  const primeira = guardar.ler('pf_origem', null) ?? (guardar.gravar('pf_origem', s.origem), s.origem);
+  // tira ?origem= da barra de endereço (o link compartilhado não deve repetir a atribuição)
+  if (q.has('origem')) { q.delete('origem'); history.replaceState(null, '', location.pathname + (q.size ? '?' + q : '') + location.hash); }
+  const base = { visitante, sessao: s.sessao, origem: s.origem, dispositivo: matchMedia('(pointer:coarse)').matches ? 'mobile' : 'desktop' };
+  let fila = [], timer = null;
+  const enviar = () => {
+    clearTimeout(timer); timer = null;
+    while (fila.length) {
+      const corpo = JSON.stringify({ ...base, eventos: fila.splice(0, 20) });
+      if (!navigator.sendBeacon?.('/api/eventos', corpo))
+        fetch('/api/eventos', { method: 'POST', body: corpo, keepalive: true }).catch(() => {});
+    }
+  };
+  addEventListener('pagehide', enviar);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') enviar(); });
+  const registrar = (tipo, alvo) => {
+    fila.push(alvo == null ? { tipo } : { tipo, alvo: String(alvo).slice(0, 60) });
+    if (fila.length >= 20) enviar(); else timer ??= setTimeout(enviar, 2000);
+  };
+  if (s.nova) registrar('visita');
+  return { registrar, doPedido: () => ({ ...base, origem: primeira }) };
+})();
+const registrar = rastro.registrar;
+
 /* ============ DADOS ============ */
 const P = './Petitfour_files/';
 let catalogo;
@@ -1224,6 +1262,7 @@ if (doDia) {
 const campoBusca = document.getElementById('busca');
 const blocoVazio = document.getElementById('vazio');
 
+let timerBusca = null;
 campoBusca.addEventListener('input', () => {
   const termo = campoBusca.value.trim().toLowerCase();
   const buscando = termo.length > 0;
@@ -1247,6 +1286,9 @@ campoBusca.addEventListener('input', () => {
   });
 
   blocoVazio.hidden = achou > 0;
+  // busca sem resultado = produto que o cliente procura e não temos
+  clearTimeout(timerBusca);
+  if (!achou && termo.length >= 3) timerBusca = setTimeout(() => registrar('busca_vazia', termo), 1200);
 });
 
 /* ============ SACOLA ============ */
@@ -1262,6 +1304,7 @@ const sacola = () => sacolas[modo];
 function salvarSacola(){ guardar.gravar('pf_sacola_' + modo, [...sacola()]); }
 function mudarQtd(id, delta){
   const s = sacola(), n = Math.min(99, (s.get(id) || 0) + delta);
+  if (delta > 0) registrar('add_carrinho', id);
   if (n <= 0) s.delete(id); else s.set(id, n);
   salvarSacola();
   atualizarBarra();
@@ -1375,6 +1418,7 @@ function abrirFicha(id){
   const p = porId.get(id);
   if (!p) return;
   produtoAberto = p;
+  registrar('ver_produto', id);
 
   document.getElementById('fichaMidia').innerHTML = p.foto
     ? `<img src="${esc(fotoUrl(p.foto))}" alt="${esc(p.nome)}">`
@@ -1432,6 +1476,7 @@ $('bairro').value = pedido.bairro_id;
 const precisaHorario = () => modo === 'encomenda' || pedido.modalidade === 'retirada';
 
 async function abrirSacola(){
+  registrar('abrir_sacola', modo);
   $('sacolaTitulo').textContent = modo === 'encomenda' ? 'Sua encomenda' : 'Sua sacola';
   $('erroPedido').hidden = true;
   renderLinhas();
@@ -1474,6 +1519,7 @@ async function carregarAgenda(){
   try {
     agendaAtual = (await api('/api/agenda?tipo=' + modo)).dias;
   } catch (e) { agendaAtual = []; $('notaHorario').textContent = e.message; return; }
+  if (!agendaAtual.length) registrar('sem_horario', modo);
   if (!agendaAtual.some(d => d.data === pedido.data)) { pedido.data = agendaAtual[0]?.data ?? null; pedido.hora = null; }
   renderAgenda();
 }
@@ -1549,6 +1595,7 @@ form.addEventListener('change', e => {
   }
   if (e.target.id === 'bairro'){
     pedido.bairro_id = e.target.value;
+    if (e.target.value === 'fora') registrar('fora_area');
     $('campoBairro').classList.remove('campo--erro');
     renderModalidade();
     cotar();
@@ -1565,7 +1612,7 @@ form.addEventListener('click', e => {
   const d = e.target.closest('[data-data]');
   if (d){ pedido.data = d.dataset.data; pedido.hora = null; renderAgenda(); return; }
   const h = e.target.closest('[data-hora]');
-  if (h){ pedido.hora = h.dataset.hora; renderAgenda(); $('erroPedido').hidden = true; }
+  if (h){ pedido.hora = h.dataset.hora; renderAgenda(); $('erroPedido').hidden = true; registrar('escolher_data', `${modo}:${pedido.data}T${pedido.hora}`); }
 });
 $('aplicarCupom').addEventListener('click', () => {
   pedido.cupom = $('cupom').value.trim();
@@ -1595,6 +1642,7 @@ form.addEventListener('submit', async e => {
       endereco: v('endereco'), cliente: v('cliente'), telefone: v('telefone'),
       observacoes: v('observacoes'), cupom: pedido.cupom,
       agendado_para: precisaHorario() ? `${pedido.data}T${pedido.hora}` : null,
+      rastro: rastro.doPedido(),
     });
     guardar.gravar('pf_cliente', { cliente: v('cliente'), telefone: v('telefone'), endereco: v('endereco'), bairro_id: pedido.bairro_id });
     const meus = guardar.ler('pf_pedidos', []).filter(x => x.codigo !== r.codigo);
@@ -1605,6 +1653,7 @@ form.addEventListener('submit', async e => {
     fecharDialogo(dlgSacola, () => abrirAcompanhamento(r.codigo));
   } catch (err) {
     mostrarErro(err.message, err.campo);
+    if (err.campo === 'horario') registrar('horario_recusado', modo);
     if (err.campo === 'horario' && precisaHorario()) carregarAgenda();
     if (err.campo === 'itens') location.reload();
   } finally {
@@ -1689,6 +1738,13 @@ mostrarLinkAcomp();
 
 /* ============ INTERAÇÕES ============ */
 document.addEventListener('click', e => {
+  // cliques em links para fora (WhatsApp, Instagram…) e em elementos marcados com data-rastro
+  const marcado = e.target.closest('[data-rastro], a[href^="http"]');
+  if (marcado) {
+    const host = marcado.href ? new URL(marcado.href).hostname.replace(/^www\./, '') : '';
+    registrar('clique', marcado.dataset.rastro || ({ 'wa.me': 'whatsapp', 'instagram.com': 'instagram' }[host] ?? host));
+  }
+
   const fechar = e.target.closest('[data-fechar]');
   if (fechar){ fecharDialogo(fechar.closest('dialog')); return; }
 
@@ -1734,6 +1790,7 @@ const pilula = document.getElementById('pilula');
 function trocarModo(novo){
   if (novo === modo) return;
   modo = novo;
+  registrar('clique', 'modo:' + novo);
   document.querySelectorAll('.modo').forEach(b => b.setAttribute('aria-selected', String(b.dataset.modo === modo)));
   animate(pilula, {
     translateX: modo === 'pedido' ? '0px' : 'calc(100% + 4px)',

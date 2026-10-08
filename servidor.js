@@ -132,7 +132,16 @@ CREATE TABLE IF NOT EXISTS pedido_itens(
 CREATE TABLE IF NOT EXISTS pedido_historico(
   id INTEGER PRIMARY KEY, pedido_id INTEGER NOT NULL REFERENCES pedidos(id),
   status TEXT NOT NULL, em TEXT NOT NULL, obs TEXT NOT NULL DEFAULT '');
+CREATE TABLE IF NOT EXISTS eventos(
+  id INTEGER PRIMARY KEY, criado_em TEXT NOT NULL, visitante TEXT, sessao TEXT,
+  tipo TEXT NOT NULL, alvo TEXT, origem TEXT, dispositivo TEXT);
+CREATE INDEX IF NOT EXISTS idx_eventos_tempo ON eventos(criado_em, tipo);
+CREATE TABLE IF NOT EXISTS links(
+  id INTEGER PRIMARY KEY, nome TEXT NOT NULL UNIQUE, destino TEXT NOT NULL,
+  ativo INTEGER NOT NULL DEFAULT 1, criado_em TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now')));
 `;
+// colunas novas em bancos já existentes (ADD COLUMN falha se já existir: tudo bem)
+const MIGRACOES = ['ALTER TABLE pedidos ADD COLUMN origem TEXT'];
 
 /* Banco vazio: carrega o cardápio que antes vivia fixo no index.html.
    Depois disso, tudo é gerenciado pelo painel. */
@@ -177,6 +186,7 @@ const preparar = () => (pronto ??= (async () => {
   const url = process.env.TURSO_DATABASE_URL;
   db = url ? bancoTurso(url, process.env.TURSO_AUTH_TOKEN || '') : await bancoLocal(DB_PATH);
   await db.exec(ESQUEMA);
+  for (const m of MIGRACOES) await db.exec(m).catch(e => { if (!/duplicate column/i.test(e.message)) throw e; });
   await semear();
 })().catch(e => { pronto = null; throw e; }));
 
@@ -415,16 +425,19 @@ async function criarPedido(body) {
 
   const codigo = crypto.randomBytes(9).toString('base64url');
   const agora = agoraISO();
+  const rastro = lerRastro(body.rastro);
   const idDoPedido = '(SELECT id FROM pedidos WHERE codigo = ?)';
   const stmts = [];
   // o CHECK da tabela cupons impede passar do limite de uso, mesmo com pedidos simultâneos
   if (r.cupom) stmts.push(['UPDATE cupons SET usos = usos + 1 WHERE id = ?', [r.cupom.id]]);
   stmts.push([`INSERT INTO pedidos(codigo,tipo,modalidade,cliente,telefone,endereco,bairro_id,bairro_nome,
-    agendado_para,observacoes,subtotal,desconto,cupom_codigo,taxa,total,status,criado_em,atualizado_em)
-    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'novo',?,?)`, [
+    agendado_para,observacoes,subtotal,desconto,cupom_codigo,taxa,total,status,criado_em,atualizado_em,origem)
+    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'novo',?,?,?)`, [
     codigo, r.tipo, r.modalidade, cliente, telefone, endereco,
     r.bairro?.id ?? null, r.bairro?.nome ?? null, agendado, observacoes,
-    r.subtotal, r.desconto, r.cupom?.codigo ?? null, r.taxa, r.total, agora, agora]]);
+    r.subtotal, r.desconto, r.cupom?.codigo ?? null, r.taxa, r.total, agora, agora, rastro.origem]]);
+  stmts.push(['INSERT INTO eventos(criado_em,visitante,sessao,tipo,alvo,origem,dispositivo) VALUES(?,?,?,?,?,?,?)',
+    [agora, rastro.visitante, rastro.sessao, 'pedido_finalizado', r.tipo, rastro.origem, rastro.dispositivo]]);
   for (const l of r.linhas)
     stmts.push([`INSERT INTO pedido_itens(pedido_id,produto_id,nome,preco,qtd,subtotal) VALUES(${idDoPedido},?,?,?,?,?)`,
       [codigo, l.produto_id, l.nome, l.preco, l.qtd, l.subtotal]]);
@@ -528,6 +541,17 @@ const ENTIDADES = {
       };
     },
   },
+  links: {
+    ordem: 'ativo DESC, nome',
+    limpar: async b => {
+      const nome = texto(b.nome, 'nome', 2, 40).toLowerCase();
+      if (!/^[a-z0-9-]+$/.test(nome)) falha('Nome do link: use só letras minúsculas, números e -.', 'nome');
+      const destino = texto(b.destino, 'destino', 1, 500) || '/';
+      if (!/^\/(?!\/)[^\s"'<>]*$/.test(destino) && !/^https:\/\/[^\s"'<>]+$/.test(destino))
+        falha('Destino: use um caminho do site (ex.: /) ou um link https.', 'destino');
+      return { nome, destino, ativo: bool(b.ativo) };
+    },
+  },
 };
 const idDe = (tabela, id) => ENTIDADES[tabela].idTexto ? String(id) : Number(id);
 
@@ -626,6 +650,124 @@ function limitarEnvio(ip) {
   envios.set(ip, lista);
 }
 
+/* ============ MÉTRICAS DE USO ============
+   Visitante e sessão são ids aleatórios gerados no navegador: nada de IP,
+   nome ou telefone nos eventos. Tipos numa lista fechada para não poluir os dados. */
+const TIPOS_EVENTO = new Set(['visita', 'ver_produto', 'add_carrinho', 'abrir_sacola', 'escolher_data',
+  'clique', 'busca_vazia', 'sem_horario', 'horario_recusado', 'fora_area']);
+const RE_ID_RASTRO = /^[\w-]{8,40}$/;
+const RETENCAO_EVENTOS_DIAS = 365;
+const curto = (v, max = 60) => typeof v === 'string' && v.trim() ? v.trim().slice(0, max) : null;
+
+/* Rastro que acompanha o pedido: inválido vira nulo, nunca impede a compra. */
+function lerRastro(r) {
+  const id = v => typeof v === 'string' && RE_ID_RASTRO.test(v) ? v : null;
+  return {
+    visitante: id(r?.visitante), sessao: id(r?.sessao),
+    origem: curto(r?.origem)?.toLowerCase() ?? 'direto',
+    dispositivo: ['mobile', 'desktop'].includes(r?.dispositivo) ? r.dispositivo : null,
+  };
+}
+
+async function registrarEventos(b) {
+  if (!RE_ID_RASTRO.test(b.visitante ?? '') || !RE_ID_RASTRO.test(b.sessao ?? '')) falha('Sessão inválida.', 'sessao');
+  if (!Array.isArray(b.eventos) || !b.eventos.length || b.eventos.length > 20) falha('Lote de eventos inválido.', 'eventos');
+  for (const e of b.eventos) if (!TIPOS_EVENTO.has(e?.tipo)) falha('Tipo de evento inválido.', 'tipo');
+  const { origem, dispositivo } = lerRastro(b), agora = agoraISO();
+  await db.lote(b.eventos.map(e => ['INSERT INTO eventos(criado_em,visitante,sessao,tipo,alvo,origem,dispositivo) VALUES(?,?,?,?,?,?,?)',
+    [agora, b.visitante, b.sessao, e.tipo, curto(e.alvo), origem, dispositivo]]));
+}
+
+/* Link curto: /l/nome → conta o clique e redireciona. Destino interno ganha
+   ?origem=nome para o pedido ser atribuído ao link. */
+async function seguirLink(nome) {
+  const l = await db.get('SELECT * FROM links WHERE nome = ? AND ativo = 1', [nome]);
+  if (!l) return '/';
+  await db.run('INSERT INTO eventos(criado_em,tipo,alvo,origem) VALUES(?,?,?,?)', [agoraISO(), 'clique_link', l.nome, l.nome]);
+  if (!l.destino.startsWith('/')) return l.destino;
+  const [semHash, hash] = l.destino.split('#');
+  return semHash + (semHash.includes('?') ? '&' : '?') + 'origem=' + encodeURIComponent(l.nome) + (hash ? '#' + hash : '');
+}
+
+async function metricas(de, ate) {
+  const ini = new Date(localParaMs(de + 'T00:00')).toISOString();
+  const fim = new Date(localParaMs(ate + 'T00:00') + 864e5).toISOString();
+  const ev = 'criado_em >= ? AND criado_em < ?', pe = "criado_em >= ? AND criado_em < ? AND status <> 'cancelado'";
+  const a = [ini, fim];
+  // limpeza preguiçosa: eventos com mais de 12 meses
+  await db.run('DELETE FROM eventos WHERE criado_em < ?', [new Date(Date.now() - RETENCAO_EVENTOS_DIAS * 864e5).toISOString()]);
+  const ETAPAS = ['visita', 'ver_produto', 'add_carrinho', 'abrir_sacola', 'pedido_finalizado'];
+  const [funil, origensEv, origensPed, links, cliquesLinks, pedidosLinks, cliques, naoAtendida, buscasVazias,
+    vistos, sacola, vendidos, semana, horas, bairros, dispositivos, clientes] = await Promise.all([
+    db.all(`SELECT tipo, COUNT(DISTINCT COALESCE(sessao, id)) sessoes FROM eventos WHERE ${ev} AND tipo IN (${ETAPAS.map(() => '?')})
+      GROUP BY tipo`, [...a, ...ETAPAS]),
+    db.all(`SELECT origem, COUNT(DISTINCT visitante) visitantes, COUNT(DISTINCT sessao) visitas FROM eventos
+      WHERE ${ev} AND tipo = 'visita' GROUP BY origem`, a),
+    db.all(`SELECT COALESCE(origem,'direto') origem, COUNT(*) pedidos, SUM(total) faturamento FROM pedidos WHERE ${pe} GROUP BY 1`, a),
+    db.all('SELECT id, nome, destino, ativo FROM links ORDER BY ativo DESC, nome'),
+    db.all(`SELECT alvo nome, COUNT(*) n FROM eventos WHERE ${ev} AND tipo = 'clique_link' GROUP BY alvo`, a),
+    db.all(`SELECT origem nome, COUNT(*) pedidos, SUM(total) faturamento FROM pedidos WHERE ${pe} GROUP BY origem`, a),
+    db.all(`SELECT alvo, COUNT(*) n FROM eventos WHERE ${ev} AND tipo = 'clique' GROUP BY alvo ORDER BY n DESC LIMIT 30`, a),
+    db.all(`SELECT tipo, alvo, COUNT(*) n FROM eventos WHERE ${ev} AND tipo IN ('sem_horario','horario_recusado','fora_area')
+      GROUP BY tipo, alvo ORDER BY n DESC`, a),
+    db.all(`SELECT lower(alvo) alvo, COUNT(*) n FROM eventos WHERE ${ev} AND tipo = 'busca_vazia' GROUP BY 1 ORDER BY n DESC LIMIT 20`, a),
+    db.all(`SELECT alvo, COUNT(DISTINCT sessao) n FROM eventos WHERE ${ev} AND tipo = 'ver_produto' GROUP BY alvo`, a),
+    db.all(`SELECT alvo, COUNT(DISTINCT sessao) n FROM eventos WHERE ${ev} AND tipo = 'add_carrinho' GROUP BY alvo`, a),
+    db.all(`SELECT i.produto_id, i.nome, SUM(i.qtd) qtd, SUM(i.subtotal) total FROM pedido_itens i JOIN pedidos p ON p.id = i.pedido_id
+      WHERE p.criado_em >= ? AND p.criado_em < ? AND p.status <> 'cancelado' GROUP BY i.produto_id`, a),
+    // produção: pelo dia/horário em que o pedido sai (agendado) ou, sem agenda, pela criação
+    db.all(`SELECT CAST(strftime('%w', COALESCE(agendado_para, datetime(criado_em, '-3 hours'))) AS INTEGER) dia,
+      COUNT(*) pedidos, SUM(total) total FROM pedidos WHERE ${pe} GROUP BY 1 ORDER BY 1`, a),
+    db.all(`SELECT CAST(strftime('%H', COALESCE(agendado_para, datetime(criado_em, '-3 hours'))) AS INTEGER) hora,
+      COUNT(*) pedidos FROM pedidos WHERE ${pe} GROUP BY 1 ORDER BY 1`, a),
+    db.all(`SELECT COALESCE(bairro_nome, 'Retirada') bairro, COUNT(*) pedidos, SUM(total) total FROM pedidos
+      WHERE ${pe} GROUP BY 1 ORDER BY pedidos DESC`, a),
+    db.all(`SELECT COALESCE(dispositivo,'?') dispositivo, COUNT(DISTINCT sessao) sessoes FROM eventos
+      WHERE ${ev} AND tipo = 'visita' GROUP BY 1`, a),
+    // recorrente = telefone com pedido anterior ao período (ou mais de um pedido nele)
+    db.get(`WITH per AS (SELECT telefone, COUNT(*) n, SUM(total) total FROM pedidos WHERE ${pe} GROUP BY telefone),
+      antes AS (SELECT DISTINCT telefone FROM pedidos WHERE criado_em < ? AND status <> 'cancelado')
+      SELECT COUNT(*) clientes,
+        COALESCE(SUM(per.n > 1 OR antes.telefone IS NOT NULL), 0) recorrentes,
+        COALESCE(SUM(CASE WHEN per.n > 1 OR antes.telefone IS NOT NULL THEN per.total END), 0) faturamento_recorrentes,
+        COALESCE(SUM(per.total), 0) faturamento
+      FROM per LEFT JOIN antes ON antes.telefone = per.telefone`, [...a, ini]),
+  ]);
+  const mapa = (rows, k, v) => new Map(rows.map(r => [r[k], r[v]]));
+  const nV = mapa(vistos, 'alvo', 'n'), nS = mapa(sacola, 'alvo', 'n'), nC = mapa(cliquesLinks, 'nome', 'n');
+  const pL = new Map(pedidosLinks.map(r => [r.nome, r]));
+  const vend = new Map(vendidos.map(r => [r.produto_id, r]));
+  const nomes = new Map((await db.all('SELECT id, nome FROM produtos')).map(p => [p.id, p.nome]));
+  const idsProd = new Set([...nV.keys(), ...nS.keys(), ...vend.keys()].filter(Boolean));
+  const origens = new Map();
+  for (const o of origensEv) origens.set(o.origem ?? 'direto', { origem: o.origem ?? 'direto', visitantes: o.visitantes, visitas: o.visitas, pedidos: 0, faturamento: 0 });
+  for (const o of origensPed) {
+    const x = origens.get(o.origem) ?? { origem: o.origem, visitantes: 0, visitas: 0 };
+    origens.set(o.origem, { ...x, pedidos: o.pedidos, faturamento: o.faturamento });
+  }
+  return {
+    de, ate,
+    funil: ETAPAS.map(t => ({ tipo: t, sessoes: funil.find(f => f.tipo === t)?.sessoes ?? 0 })),
+    origens: [...origens.values()].sort((x, y) => y.faturamento - x.faturamento || y.visitas - x.visitas),
+    links: links.map(l => ({ ...l, cliques: nC.get(l.nome) ?? 0, pedidos: pL.get(l.nome)?.pedidos ?? 0, faturamento: pL.get(l.nome)?.faturamento ?? 0 })),
+    produtos: [...idsProd].map(id => ({
+      produto_id: id, nome: vend.get(id)?.nome ?? nomes.get(id) ?? id,
+      vistos: nV.get(id) ?? 0, sacola: nS.get(id) ?? 0, vendidos: vend.get(id)?.qtd ?? 0, total: vend.get(id)?.total ?? 0,
+    })).sort((x, y) => y.total - x.total || y.vistos - x.vistos),
+    demanda: { semana, horas, bairros },
+    naoAtendida, buscasVazias, cliques, dispositivos, clientes,
+  };
+}
+
+/* limite simples de eventos por IP (freio contra abuso, não garantia) */
+const envioEventos = new Map();
+function limitarEventos(ip) {
+  const agora = Date.now(), lista = (envioEventos.get(ip) || []).filter(t => t > agora - 60e3);
+  if (lista.length >= 60) falha('Muitos eventos.', null, 429);
+  lista.push(agora);
+  envioEventos.set(ip, lista);
+}
+
 /* ============ ROTAS ============ */
 const rotas = [];
 const rota = (metodo, padrao, fn, admin = false) => rotas.push({
@@ -671,8 +813,20 @@ rota('GET', '/api/pedidos/:codigo', async (req, { codigo }) => {
     cupom_codigo, taxa, total, status, criado_em, historico, fluxo, observacoes };
 });
 
+rota('POST', '/api/eventos', async (req, p, body) => {
+  limitarEventos(req.ip);
+  await registrarEventos(body);
+  return { ok: true };
+});
+
 // --- admin
 rota('POST', '/api/admin/login', (req, p, body) => login(req.ip, body.senha));
+rota('GET', '/api/admin/metricas', async (req, p, b, q) => {
+  const de = q.get('de'), ate = q.get('ate');
+  if (!RE_DATA.test(de) || !RE_DATA.test(ate) || de > ate) falha('Período inválido.', 'periodo');
+  if ((Date.parse(ate) - Date.parse(de)) / 864e5 > 366) falha('Período máximo: 1 ano.', 'periodo');
+  return metricas(de, ate);
+}, true);
 rota('GET', '/api/admin/resumo', async () => {
   const inicioHoje = new Date(localParaMs(hojeLocal() + 'T00:00')).toISOString();
   return {
@@ -834,6 +988,12 @@ export async function handler(req, res) {
     ? String(req.headers['x-real-ip'] || req.headers['x-forwarded-for'] || '').split(',')[0].trim()
     : req.socket.remoteAddress;
   try {
+    const curtoLink = url.pathname.match(/^\/l\/([a-z0-9-]{1,40})\/?$/i);
+    if (curtoLink && req.method === 'GET') {
+      await preparar();
+      res.writeHead(302, { Location: await seguirLink(curtoLink[1].toLowerCase()), 'Cache-Control': 'no-store' });
+      return res.end();
+    }
     if (!url.pathname.startsWith('/api/')) {
       if (req.method !== 'GET' && req.method !== 'HEAD') return enviar(res, 405, { erro: 'Método não permitido.' });
       return await servirArquivo(res, url);

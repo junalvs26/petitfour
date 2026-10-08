@@ -2,7 +2,10 @@
   "framework": null,
   "outputDirectory": "public",
   "cleanUrls": true,
-  "rewrites": [{ "source": "/api/:caminho*", "destination": "/api" }],
+  "rewrites": [
+    { "source": "/api/:caminho*", "destination": "/api" },
+    { "source": "/l/:nome", "destination": "/api" }
+  ],
   "headers": [
     { "source": "/(.*)", "headers": [
       { "key": "X-Content-Type-Options", "value": "nosniff" },

@@ -275,6 +275,73 @@ test('relatório: faturamento, cancelados com motivo e período', async () => {
   assert.equal((await req('GET', `/api/admin/relatorio?de=${hoje}&ate=${hoje}`, null, false)).s, 401);
 });
 
+/* ============ MÉTRICAS ============ */
+const hojeSL = () => new Date(Date.now() - 3 * 3600e3).toISOString().slice(0, 10);
+const metricas = async () => (await req('GET', `/api/admin/metricas?de=${hojeSL()}&ate=${hojeSL()}`)).j;
+const lote = (sessao, eventos, extra = {}) => req('POST', '/api/eventos',
+  { visitante: 'vis-' + sessao, sessao, origem: 'instagram.com', dispositivo: 'mobile', eventos, ...extra }, false);
+
+test('eventos: aceita lote válido e recusa tipos/ids inválidos', async () => {
+  assert.equal((await lote('sessao-aaaa1', [{ tipo: 'visita' }, { tipo: 'ver_produto', alvo: 'trad' }])).s, 200);
+  assert.equal((await lote('sessao-aaaa1', [{ tipo: 'pedido_finalizado' }])).s, 422, 'tipo só do servidor');
+  assert.equal((await lote('sessao-aaaa1', [{ tipo: 'inventado' }])).s, 422);
+  assert.equal((await lote('x', [{ tipo: 'visita' }])).s, 422, 'sessão inválida');
+  assert.equal((await lote('sessao-aaaa1', Array(21).fill({ tipo: 'visita' }))).s, 422, 'lote grande');
+  assert.equal((await lote('sessao-aaaa1', [])).s, 422);
+});
+
+test('links curtos: CRUD, redireciona, conta clique e atribui o pedido', async () => {
+  assert.equal((await req('POST', '/api/admin/links', { nome: 'Bio Insta', destino: '/', ativo: true })).s, 422, 'nome com espaço');
+  assert.equal((await req('POST', '/api/admin/links', { nome: 'bio', destino: 'javascript:alert(1)', ativo: true })).s, 422);
+  const l = await req('POST', '/api/admin/links', { nome: 'bio', destino: '/', ativo: true });
+  assert.equal(l.s, 201);
+  await req('POST', '/api/admin/links', { nome: 'zap', destino: 'https://wa.me/5598999990000', ativo: true });
+  assert.equal((await req('POST', '/api/admin/links', { nome: 'bio', destino: '/', ativo: true })).s, 409);
+
+  const r = await fetch(base + '/l/bio', { redirect: 'manual' });
+  assert.equal(r.status, 302);
+  assert.equal(r.headers.get('location'), '/?origem=bio');
+  assert.equal((await fetch(base + '/l/zap', { redirect: 'manual' })).headers.get('location'), 'https://wa.me/5598999990000');
+  assert.equal((await fetch(base + '/l/naoexiste', { redirect: 'manual' })).headers.get('location'), '/');
+  await req('PATCH', `/api/admin/links/${l.j.id}/ativo`, { ativo: false });
+  assert.equal((await fetch(base + '/l/bio', { redirect: 'manual' })).headers.get('location'), '/', 'inativo não conta');
+  await req('PATCH', `/api/admin/links/${l.j.id}/ativo`, { ativo: true });
+
+  // pedido vindo do link
+  const dia = (await agendaDe('pedido'))[0];
+  const p = await req('POST', '/api/pedidos', {
+    ...pedidoBase, modalidade: 'retirada', itens: [{ id: 'trad', qtd: 1 }], agendado_para: dia.data + 'T' + dia.horarios.at(-2),
+    rastro: { visitante: 'vis-sessao-link1', sessao: 'sessao-link1', origem: 'bio' },
+  });
+  assert.equal(p.s, 201);
+  const m = await metricas();
+  const bio = m.links.find(x => x.nome === 'bio');
+  assert.equal(bio.cliques, 1);
+  assert.equal(bio.pedidos, 1);
+  assert.equal(bio.faturamento, 2050);
+  assert.equal(m.links.find(x => x.nome === 'zap').cliques, 1);
+  assert.ok(m.origens.some(o => o.origem === 'bio' && o.pedidos === 1));
+});
+
+test('métricas: funil por sessão, procura não atendida, cliques e recorrência', async () => {
+  const antes = await metricas();
+  await lote('sessao-funil1', [{ tipo: 'visita' }, { tipo: 'ver_produto', alvo: 'cake' }, { tipo: 'add_carrinho', alvo: 'cake' }, { tipo: 'abrir_sacola' }]);
+  await lote('sessao-funil2', [{ tipo: 'visita' }, { tipo: 'clique', alvo: 'whatsapp' }, { tipo: 'fora_area' }, { tipo: 'busca_vazia', alvo: 'pudim' }]);
+  const m = await metricas();
+  const etapa = (mm, t) => mm.funil.find(f => f.tipo === t).sessoes;
+  assert.equal(etapa(m, 'visita'), etapa(antes, 'visita') + 2);
+  assert.equal(etapa(m, 'add_carrinho'), etapa(antes, 'add_carrinho') + 1);
+  assert.ok(m.funil.some(f => f.tipo === 'pedido_finalizado'));
+  assert.ok(m.cliques.some(c => c.alvo === 'whatsapp' && c.n >= 1));
+  assert.ok(m.naoAtendida.some(x => x.tipo === 'fora_area'));
+  assert.ok(m.buscasVazias.some(b => b.alvo === 'pudim'));
+  assert.ok(m.produtos.some(p => p.produto_id === 'cake' && p.vistos >= 1 && p.sacola >= 1));
+  assert.ok(m.dispositivos.some(d => d.dispositivo === 'mobile'));
+  assert.equal(m.clientes.recorrentes >= 1, true, 'mesmo telefone em vários pedidos');
+  assert.ok(Array.isArray(m.demanda.semana) && Array.isArray(m.demanda.horas) && Array.isArray(m.demanda.bairros));
+  assert.equal((await req('GET', `/api/admin/metricas?de=${hojeSL()}&ate=${hojeSL()}`, null, false)).s, 401);
+});
+
 test('status: voltar uma fase e reabrir cancelado, com histórico', async () => {
   const r = (await req('POST', '/api/pedidos', { ...pedidoBase, modalidade: 'delivery', bairro_id: 1, endereco: 'Rua B, 20', itens: [{ id: 'trad', qtd: 1 }] })).j;
   const mudar = (s, obs) => req('POST', `/api/admin/pedidos/${r.id}/status`, { status: s, obs });

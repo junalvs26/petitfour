@@ -125,6 +125,12 @@ dialog form{display:flex;flex-direction:column;max-height:92vh}
 .periodo{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
 .periodo .campo{margin:0;min-width:140px}
 .num{text-align:right;white-space:nowrap}
+.barra{height:10px;border-radius:999px;background:var(--pf-azul-100);overflow:hidden;min-width:60px}
+.barra>i{display:block;height:100%;background:var(--pf-rosa-400)}
+.funil{display:grid;gap:10px}
+.funil__linha{display:grid;grid-template-columns:150px 1fr 110px;gap:10px;align-items:center}
+@media (max-width:560px){.funil__linha{grid-template-columns:1fr 90px}.funil__linha .barra{grid-column:1/-1;grid-row:2}}
+.url-link{font-family:ui-monospace,monospace;font-size:13px;word-break:break-all}
 @media (max-width:700px){
   .tabela.tabela--fixa thead{display:table-header-group}
   .tabela.tabela--fixa tr{display:table-row;padding:0}
@@ -161,12 +167,14 @@ dialog form{display:flex;flex-direction:column;max-height:92vh}
     <nav class="abas" id="abas">
       <button class="aba" data-aba="inicio">Início</button>
       <button class="aba" data-aba="relatorio">Relatórios</button>
+      <button class="aba" data-aba="metricas">Métricas</button>
       <button class="aba" data-aba="pedidos">Pedidos <span class="qtd" id="qtdNovos" hidden></span></button>
       <button class="aba" data-aba="encomendas">Encomendas</button>
       <button class="aba" data-aba="produtos">Produtos</button>
       <button class="aba" data-aba="categorias">Categorias</button>
       <button class="aba" data-aba="bairros">Delivery</button>
       <button class="aba" data-aba="cupons">Cupons</button>
+      <button class="aba" data-aba="links">Links</button>
       <button class="aba" data-aba="config">Configurações</button>
     </nav>
   </header>
@@ -709,6 +717,128 @@ telas.relatorio = async () => {
     telas.relatorio().catch(err => toast(err.message));
   };
   $('exportarCsv').onclick = () => exportarCsv(ultimoRel);
+};
+
+/* ============ LINKS CURTOS ============ */
+const urlLink = nome => location.origin + '/l/' + nome;
+telas.links = async () => {
+  await telaLista({
+    tabela: 'links', titulo: 'Links rastreáveis', novo: 'Link',
+    nota: `<p class="muted">Use um link para cada lugar onde você divulga (bio do Instagram, status do WhatsApp, panfleto, QR code).
+      Cada clique é contado e, se a pessoa fizer um pedido, ele aparece em <strong>Métricas</strong> com o nome do link.</p>`,
+    colunas: [
+      { t: 'Link', v: r => `<strong>${esc(r.nome)}</strong><br><span class="url-link">${esc(urlLink(r.nome))}</span>` },
+      { t: 'Leva para', cls: 'oculto-mob', v: r => `<span class="url-link">${esc(r.destino)}</span>` },
+      { t: '', v: r => `<button class="btn btn--leve btn--peq" type="button" data-copiar="${esc(r.nome)}">Copiar</button>` },
+    ],
+    editar: r => abrirForm(r ? 'Editar link' : 'Novo link', [
+      ['nome', 'Nome do link', 'texto', { max: 40, dica: 'Só letras minúsculas, números e -. Ex.: insta-bio, panfleto-junho.' }],
+      ['destino', 'Para onde leva', 'texto', { max: 500, dica: '/ = página inicial do site. Ou um link https (ex.: https://wa.me/55989...).' }],
+      ['ativo', 'Ativo', 'bool'],
+    ], r ?? { ativo: 1, destino: '/' }, d => r ? api('PUT', '/links/' + r.id, d) : api('POST', '/links', d)),
+  });
+  const clique = $('conteudo').onclick;
+  $('conteudo').onclick = async e => {
+    const b = e.target.closest('[data-copiar]');
+    if (!b) return clique(e);
+    try { await navigator.clipboard.writeText(urlLink(b.dataset.copiar)); toast('Link copiado'); }
+    catch { prompt('Copie o link:', urlLink(b.dataset.copiar)); }
+  };
+};
+
+/* ============ MÉTRICAS ============ */
+let periodoMet = null;
+const ETAPAS = { visita: 'Entraram no site', ver_produto: 'Abriram um produto', add_carrinho: 'Puseram na sacola', abrir_sacola: 'Abriram a sacola', pedido_finalizado: 'Fizeram o pedido' };
+const NAO_ATENDIDA = { sem_horario: 'Sem horário disponível', horario_recusado: 'Horário recusado no envio', fora_area: 'Bairro fora da entrega' };
+const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—';
+const barra = (v, max) => `<div class="barra"><i style="width:${max ? Math.max(2, v / max * 100) : 0}%"></i></div>`;
+
+telas.metricas = async () => {
+  const hoje = hojeLocal();
+  periodoMet ??= { de: somaDias(hoje, -29), ate: hoje };
+  const m = await api('GET', `/metricas?de=${periodoMet.de}&ate=${periodoMet.ate}`);
+  if (aba !== 'metricas') return;
+  const tabela = (cab, linhas, vazio) => linhas.length
+    ? `<div style="overflow-x:auto"><table class="tabela tabela--fixa"><thead><tr>${cab.map(([h, n]) => `<th class="${n ? 'num' : ''}">${h}</th>`).join('')}</tr></thead>
+       <tbody>${linhas.join('')}</tbody></table></div>` : `<p class="muted">${vazio}</p>`;
+  const topo = m.funil[0].sessoes, fim = m.funil.at(-1).sessoes;
+  const c = m.clientes;
+  const maxSem = Math.max(0, ...m.demanda.semana.map(d => d.pedidos));
+  const maxHora = Math.max(0, ...m.demanda.horas.map(h => h.pedidos));
+  const nDisp = Object.fromEntries(m.dispositivos.map(d => [d.dispositivo, d.sessoes]));
+  $('conteudo').innerHTML = `
+    <div class="cab"><h2>Métricas · ${fmtData(m.de)} a ${fmtData(m.ate)}</h2></div>
+    <form class="periodo painel" id="formPeriodoMet">
+      <label class="campo"><span>De</span><input type="date" name="de" value="${m.de}" max="${hoje}"></label>
+      <label class="campo"><span>Até</span><input type="date" name="ate" value="${m.ate}" max="${hoje}"></label>
+      <button class="btn">Ver</button>
+      <button class="btn btn--leve btn--peq" type="button" data-rapido="7">7 dias</button>
+      <button class="btn btn--leve btn--peq" type="button" data-rapido="30">30 dias</button>
+      <button class="btn btn--leve btn--peq" type="button" data-rapido="90">90 dias</button>
+    </form>
+
+    <div class="grade grade--4" style="margin-top:14px">
+      <div class="painel"><div class="rotulo">Visitas</div><div class="numero">${topo}</div><div class="muted">${nDisp.mobile || 0} no celular · ${nDisp.desktop || 0} no computador</div></div>
+      <div class="painel"><div class="rotulo">Conversão</div><div class="numero">${pct(fim, topo)}</div><div class="muted">visitas que viraram pedido</div></div>
+      <div class="painel"><div class="rotulo">Clientes</div><div class="numero">${c.clientes}</div><div class="muted">${c.clientes - c.recorrentes} novos · ${c.recorrentes} voltaram</div></div>
+      <div class="painel"><div class="rotulo">Faturamento de quem voltou</div><div class="numero">${pct(c.faturamento_recorrentes, c.faturamento)}</div><div class="muted">${brl(c.faturamento_recorrentes)} de ${brl(c.faturamento)}</div></div>
+    </div>
+
+    <div class="secao-rel painel"><h3>Funil: onde o cliente desiste</h3>
+      <div class="funil">${m.funil.map((f, i) => `<div class="funil__linha"><span>${ETAPAS[f.tipo]}</span>${barra(f.sessoes, topo)}
+        <span class="num"><strong>${f.sessoes}</strong> <span class="muted">${i ? pct(f.sessoes, m.funil[i - 1].sessoes) : ''}</span></span></div>`).join('')}</div>
+      <p class="muted" style="margin:10px 0 0">Conta visitas (sessões). O percentual mostra quantos passaram da etapa anterior para esta.</p>
+    </div>
+
+    <div class="secao-rel"><h3>De onde vêm os clientes</h3>${tabela([['Origem'], ['Visitas', 1], ['Pedidos', 1], ['Conversão', 1], ['Faturamento', 1]],
+      m.origens.map(o => `<tr><td>${esc(o.origem)}</td><td class="num">${o.visitas}</td><td class="num">${o.pedidos}</td><td class="num">${pct(o.pedidos, o.visitas)}</td><td class="num">${brl(o.faturamento)}</td></tr>`),
+      'Sem visitas no período.')}
+      <p class="muted">"direto" = digitou o endereço ou abriu sem link de origem. Pedidos contam pela primeira origem do cliente.</p></div>
+
+    <div class="secao-rel"><h3>Links rastreáveis</h3>${tabela([['Link'], ['Cliques', 1], ['Pedidos', 1], ['Faturamento', 1]],
+      m.links.map(l => `<tr class="${l.ativo ? '' : 'inativo'}"><td><strong>${esc(l.nome)}</strong></td><td class="num">${l.cliques}</td><td class="num">${l.pedidos}</td><td class="num">${brl(l.faturamento)}</td></tr>`),
+      'Nenhum link criado. Crie na aba Links.')}</div>
+
+    <div class="secao-rel"><h3>Produtos: interesse × venda</h3>${tabela([['Produto'], ['Abriram', 1], ['Puseram na sacola', 1], ['Vendidos (qtd.)', 1], ['Valor', 1]],
+      m.produtos.map(p => `<tr><td>${esc(p.nome)}</td><td class="num">${p.vistos}</td><td class="num">${p.sacola}</td><td class="num">${p.vendidos}</td><td class="num">${brl(p.total)}</td></tr>`),
+      'Sem dados no período.')}
+      <p class="muted">Muito aberto e pouco vendido pode indicar preço, foto ou descrição a revisar.</p></div>
+
+    <div class="grade grade--2 secao-rel">
+      <div class="painel"><h3 style="margin-bottom:10px">Pedidos por dia da semana</h3>
+        <div class="funil">${[1,2,3,4,5,6,0].map(d => { const x = m.demanda.semana.find(s => s.dia === d); const n = x?.pedidos || 0;
+          return `<div class="funil__linha"><span>${DIAS[d]}</span>${barra(n, maxSem)}<span class="num">${n}</span></div>`; }).join('')}</div>
+        <p class="muted" style="margin:10px 0 0">Pelo dia da entrega/retirada (encomendas) ou do pedido.</p></div>
+      <div class="painel"><h3 style="margin-bottom:10px">Pedidos por horário</h3>
+        ${m.demanda.horas.length ? `<div class="funil">${m.demanda.horas.map(h => `<div class="funil__linha"><span>${String(h.hora).padStart(2, '0')}h</span>${barra(h.pedidos, maxHora)}<span class="num">${h.pedidos}</span></div>`).join('')}</div>` : '<p class="muted">Sem pedidos.</p>'}</div>
+    </div>
+
+    <div class="secao-rel"><h3>Pedidos por bairro</h3>${tabela([['Bairro'], ['Pedidos', 1], ['Faturamento', 1]],
+      m.demanda.bairros.map(b => `<tr><td>${esc(b.bairro)}</td><td class="num">${b.pedidos}</td><td class="num">${brl(b.total)}</td></tr>`), 'Sem pedidos.')}</div>
+
+    <div class="grade grade--2 secao-rel">
+      <div><h3>Procura que não virou venda</h3>${tabela([['Motivo'], ['Detalhe'], ['Vezes', 1]],
+        m.naoAtendida.map(x => `<tr><td>${NAO_ATENDIDA[x.tipo]}</td><td>${esc(x.alvo || '')}</td><td class="num">${x.n}</td></tr>`), 'Nada registrado. 🎉')}</div>
+      <div><h3>Buscas sem resultado</h3>${tabela([['O que procuraram'], ['Vezes', 1]],
+        m.buscasVazias.map(b => `<tr><td>${esc(b.alvo)}</td><td class="num">${b.n}</td></tr>`), 'Nenhuma.')}</div>
+    </div>
+
+    <div class="secao-rel"><h3>Cliques no site</h3>${tabela([['Onde'], ['Cliques', 1]],
+      m.cliques.map(k => `<tr><td>${esc(k.alvo)}</td><td class="num">${k.n}</td></tr>`), 'Nenhum clique registrado.')}</div>`;
+
+  $('formPeriodoMet').onsubmit = e => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    if (f.get('de') > f.get('ate')) return toast('A data inicial precisa ser antes da final.');
+    periodoMet = { de: f.get('de'), ate: f.get('ate') };
+    telas.metricas().catch(err => toast(err.message));
+  };
+  $('formPeriodoMet').onclick = e => {
+    const b = e.target.closest('[data-rapido]');
+    if (!b) return;
+    periodoMet = { de: somaDias(hoje, 1 - Number(b.dataset.rapido)), ate: hoje };
+    telas.metricas().catch(err => toast(err.message));
+  };
 };
 
 /* CSV no padrão do Excel brasileiro: ; como separador e vírgula decimal */
